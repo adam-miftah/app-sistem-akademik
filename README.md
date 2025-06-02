@@ -43,11 +43,11 @@ Dalam era digital ini, manajemen akademik yang efisien adalah kunci. Aplikasi ka
 
 Aplikasi ini dibangun dengan cinta dan teknologi modern:
 
-* **Backend:** PHP (Framework [Sebutkan Framework, misal: Laravel])
-* **Frontend:** [Sebutkan, misal: Blade, Vue.js, React, Livewire, HTML, CSS, JavaScript]
-* **Database:** [Sebutkan, misal: MySQL, PostgreSQL]
-* **Web Server:** [Sebutkan, misal: Nginx, Apache]
-* **Tools Lain:** [Sebutkan, misal: Composer, NPM/Yarn, Git, Docker]
+* **Backend:** PHP (Framework Laravel 11)
+* **Frontend:** [Blade, HTML, CSS, JavaScript]
+* **Database:** [MySQL]
+* **Web Server:** [apache]
+* **Tools Lain:** [Composer, NPM/Yarn]
 
 ---
 
@@ -56,11 +56,11 @@ Aplikasi ini dibangun dengan cinta dan teknologi modern:
 Ingin mencoba atau berkontribusi? Ikuti langkah-langkah berikut:
 
 ### 1. Prasyarat
-* Pastikan Anda memiliki [Sebutkan versi PHP, misal: PHP >= 8.1]
+* Pastikan Anda memiliki [PHP >= 8.3]
 * Composer terinstal
-* Node.js & NPM/Yarn (jika menggunakan teknologi frontend JavaScript)
-* Web Server (misal: Laragon, XAMPP, atau konfigurasi server lainnya)
-* Database [Sebutkan Database]
+* Node.js & NPM/Yarn 
+* Web Server [Laragon]
+* Database [MySql]
 
 ### 2. Instalasi
 ```bash
@@ -93,6 +93,7 @@ npm run dev # atau build
 
 # 9. Jalankan server pengembangan (khusus Laravel)
 php artisan serve
+```
 🗺️ Roadmap Proyek (Opsional)
 [ ] Implementasi Modul Keuangan Mahasiswa
 [ ] Integrasi Notifikasi Email & WhatsApp
