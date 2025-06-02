@@ -90,13 +90,15 @@ npm run dev # atau build
 # 9. Jalankan server pengembangan (khusus Laravel)
 php artisan serve
 ```
-🗺️ Roadmap Proyek (Opsional)
+## 🗺️ Roadmap Proyek (Opsional)
 - **Implementasi Modul Keuangan Mahasiswa**
 - **Integrasi Notifikasi Email & WhatsApp**
 - **Fitur Diskusi Online per Mata Kuliah**
 - **Pengembangan Aplikasi Mobile Pendamping**
-  
-🤝 Ingin Berkontribusi?
+
+---    
+
+## 🤝 Ingin Berkontribusi?
 Kontribusi Anda sangat kami harapkan! Baik itu berupa ide, laporan bug, atau pull request.
 - **Fork repository ini.**
 - **Buat Branch baru (git checkout -b fitur/NamaFiturAnda).**
@@ -105,10 +107,14 @@ Kontribusi Anda sangat kami harapkan! Baik itu berupa ide, laporan bug, atau pul
 - **Buat Pull Request baru.**
 - **Pastikan untuk mengikuti panduan kontribusi (jika ada file CONTRIBUTING.md).**
 
-📜 Lisensi
+---
+
+## 📜 Lisensi
 Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat file LICENSE untuk detail lengkap.
 
-💌 Kontak & Dukungan
+---
+
+## 💌 Kontak & Dukungan
 Punya pertanyaan, saran, atau ingin berdiskusi?
 
 Issues: Buka Isu Baru
