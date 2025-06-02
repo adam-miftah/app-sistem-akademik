@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="URL_LOGO_PROYEK_ANDA_JIKA_ADA_ATAU_BANNER_KEREN" alt="Banner Sistem Akademik" width="700">
-</p>
-
 # 🚀 App Sistem Akademik 🎓
 
 Selamat datang di **App Sistem Akademik**! Solusi modern untuk digitalisasi dan optimalisasi manajemen akademik di institusi pendidikan Anda. Proyek ini bertujuan untuk menyederhanakan proses, meningkatkan kolaborasi, dan menyediakan informasi secara _real-time_ bagi semua _stakeholder_.
@@ -95,19 +91,19 @@ npm run dev # atau build
 php artisan serve
 ```
 🗺️ Roadmap Proyek (Opsional)
-[ ] Implementasi Modul Keuangan Mahasiswa
-[ ] Integrasi Notifikasi Email & WhatsApp
-[ ] Fitur Diskusi Online per Mata Kuliah
-[ ] Pengembangan Aplikasi Mobile Pendamping
+- **Implementasi Modul Keuangan Mahasiswa**
+- **Integrasi Notifikasi Email & WhatsApp**
+- **Fitur Diskusi Online per Mata Kuliah**
+- **Pengembangan Aplikasi Mobile Pendamping**
+  
 🤝 Ingin Berkontribusi?
 Kontribusi Anda sangat kami harapkan! Baik itu berupa ide, laporan bug, atau pull request.
-
-Fork repository ini.
-Buat Branch baru (git checkout -b fitur/NamaFiturAnda).
-Commit perubahan Anda (git commit -m 'Menambahkan fitur keren').
-Push ke branch Anda (git push origin fitur/NamaFiturAnda).
-Buat Pull Request baru.
-Pastikan untuk mengikuti panduan kontribusi (jika ada file CONTRIBUTING.md).
+- **Fork repository ini.**
+- **Buat Branch baru (git checkout -b fitur/NamaFiturAnda).**
+- **Commit perubahan Anda (git commit -m 'Menambahkan fitur keren').**
+- **Push ke branch Anda (git push origin fitur/NamaFiturAnda).**
+- **Buat Pull Request baru.**
+- **Pastikan untuk mengikuti panduan kontribusi (jika ada file CONTRIBUTING.md).**
 
 📜 Lisensi
 Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat file LICENSE untuk detail lengkap.
@@ -116,7 +112,7 @@ Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat 
 Punya pertanyaan, saran, atau ingin berdiskusi?
 
 Issues: Buka Isu Baru
-Email: [alamat.email.anda@example.com] (jika Anda ingin menyertakannya)
+Email: [adammiftah196@gmail.com] 
 &lt;p align="center">
 Dibuat dengan ❤️ oleh &lt;a href="https://github.com/adam-miftah">Adam Miftah&lt;/a> dan para kontributor.
 &lt;/p>
