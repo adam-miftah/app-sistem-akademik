@@ -110,17 +110,20 @@ Kontribusi Anda sangat kami harapkan! Baik itu berupa ide, laporan bug, atau pul
 ---
 
 ## 📜 Lisensi
+
 Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat file LICENSE untuk detail lengkap.
 
 ---
 
 ## 💌 Kontak & Dukungan
+
 Punya pertanyaan, saran, atau ingin berdiskusi?
 
 Issues: Buka Isu Baru
+
 Email: [adammiftah196@gmail.com] 
-&lt;p align="center">
-Dibuat dengan ❤️ oleh &lt;a href="https://github.com/adam-miftah">Adam Miftah&lt;/a> dan para kontributor.
+
+&lt;p align="center">Dibuat dengan ❤️ oleh &lt;a href="https://github.com/adam-miftah">Adam Miftah&lt;/a> dan para kontributor.
 &lt;/p>
 
 
