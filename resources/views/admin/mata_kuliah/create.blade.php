@@ -167,10 +167,12 @@
                         <i class="fas fa-chalkboard input-icon"></i>
                         <select id="kelas" name="kelas" class="form-control" required>
                             <option value="">Pilih Kelas</option>
-                            <option value="Reguler" {{ old('kelas') == 'Reguler' ? 'selected' : '' }}>Reguler</option>
-                            <option value="Khusus" {{ old('kelas') == 'Khusus' ? 'selected' : '' }}>Khusus</option>
-                            <option value="Pagi" {{ old('kelas') == 'Pagi' ? 'selected' : '' }}>Pagi</option>
-                            <option value="Malam" {{ old('kelas') == 'Malam' ? 'selected' : '' }}>Malam</option>
+                            <option value="Reguler A" {{ old('kelas') == 'Reguler A' ? 'selected' : '' }}>Reguler A</option>
+                            <option value="Reguler B" {{ old('kelas') == 'Reguler B' ? 'selected' : '' }}>Reguler B</option>
+                            <option value="Reguler CK" {{ old('kelas') == 'Reguler CK' ? 'selected' : '' }}>Reguler CK
+                            </option>
+                            <option value="Reguler CS" {{ old('kelas') == 'Reguler CS' ? 'selected' : '' }}>Reguler CS
+                            </option>
                             {{-- Tambahkan opsi kelas lain sesuai kebutuhan Anda --}}
                         </select>
                     </div>

@@ -9,30 +9,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    {{-- Duplikat Poppins, salah satu bisa dihapus jika tidak ada perbedaan versi --}}
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
     <style>
         :root {
-            --primary-color: var(--bs-primary);
+            --primary-color: #4361ee;
+            /* Menggunakan nilai Bootstrap primary secara langsung jika memungkinkan atau definisikan di sini */
             --primary-hover: #3a56d4;
             --secondary-color: #3f37c9;
-            --accent-color: var(--bs-info);
-            --success-color: var(--bs-success);
-            --danger-color: var(--bs-danger);
-            --warning-color: var(--bs-warning);
+            --accent-color: #17a2b8;
+            /* Menggunakan nilai Bootstrap info */
+            --success-color: #28a745;
+            /* Menggunakan nilai Bootstrap success */
+            --danger-color: #dc3545;
+            /* Menggunakan nilai Bootstrap danger */
+            --warning-color: #ffc107;
+            /* Menggunakan nilai Bootstrap warning */
             --text-color: #2b2d42;
             --text-light: #8d99ae;
             --light-bg: #f8f9fa;
             --white-bg: #ffffff;
             --sidebar-bg: #1a1a2e;
+            /* Warna gelap untuk kontras */
             --sidebar-hover: rgba(255, 255, 255, 0.1);
             --border-color: #e9ecef;
             --header-height: 75px;
-            --footer-height: 10px;
-            --sidebar-width-expanded: 250px;
+            --footer-height: 60px;
+            /* Disesuaikan agar footer terlihat */
+            --sidebar-width-expanded: 260px;
+            /* Sedikit lebih lebar */
             --sidebar-width-collapsed: 80px;
             --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.08);
             --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.12);
@@ -49,11 +61,12 @@
             font-family: 'Poppins', sans-serif;
             background-color: var(--light-bg);
             color: var(--text-color);
-            height: 100vh;
+            min-height: 100vh;
+            /* Menggunakan min-height agar footer tidak tumpang tindih */
             display: flex;
             line-height: 1.6;
             transition: var(--transition);
-            overflow: hidden;
+            /* overflow: hidden; Dihapus agar content bisa scroll jika lebih panjang dari viewport */
         }
 
         /* Sidebar Styles */
@@ -64,47 +77,76 @@
             padding: 1.5rem 0;
             box-shadow: var(--shadow-medium);
             flex-shrink: 0;
-            margin-bottom: 0;
             display: flex;
             flex-direction: column;
             transition: var(--transition);
-            z-index: 1000;
-            position: relative;
+            z-index: 1030;
+            /* Di atas header jika diperlukan */
+            position: fixed;
+            /* Ubah ke fixed untuk sidebar yang tetap */
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            /* Scroll jika konten sidebar panjang */
         }
 
-        /* Collapsed sidebar state */
+        /* Hide scrollbar for Webkit browsers */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--sidebar-bg);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            border: 2px solid var(--sidebar-bg);
+        }
+
+        /* Hide scrollbar for Firefox */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--sidebar-bg);
+        }
+
+
         body.sidebar-collapsed .sidebar {
             width: var(--sidebar-width-collapsed);
         }
 
-        body.sidebar-collapsed .sidebar-header h2 {
+        body.sidebar-collapsed .sidebar .sidebar-header h2 {
             display: none;
         }
 
-        body.sidebar-collapsed .sidebar-header {
+        body.sidebar-collapsed .sidebar .sidebar-header {
             padding-bottom: 0;
             margin-bottom: 1rem;
+            /* Tetap ada margin */
         }
 
-        body.sidebar-collapsed .sidebar-nav ul li a span {
+        body.sidebar-collapsed .sidebar .sidebar-nav ul li a span {
             opacity: 0;
             width: 0;
             height: 0;
             position: absolute;
+            /* Agar tidak memakan ruang */
+            visibility: hidden;
+            /* Sembunyikan sepenuhnya */
         }
 
-        body.sidebar-collapsed .sidebar-nav ul li a {
+        body.sidebar-collapsed .sidebar .sidebar-nav ul li a {
             justify-content: center;
             padding: 0.75rem 0;
+            /* Sesuaikan padding untuk ikon saja */
         }
 
-        body.sidebar-collapsed .sidebar-nav ul li a i {
+        body.sidebar-collapsed .sidebar .sidebar-nav ul li a i {
             margin-right: 0;
             font-size: 1.3rem;
-        }
-
-        body.sidebar-collapsed .sidebar-nav ul li a:hover span {
-            display: none;
+            /* Ukuran ikon saat collapsed */
         }
 
         .sidebar-header {
@@ -112,40 +154,39 @@
             margin-bottom: 1rem;
             padding: 0 1rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            transition: var(--transition);
         }
 
         .sidebar-header h2 {
-            margin: 6px;
-            color: var(--accent-color);
-            font-size: 1.2rem;
+            margin: 0;
+            /* Dihapus margin atas bawah */
+            color: #ffffff;
+            /* Warna putih untuk kontras */
+            font-size: 1.25rem;
+            /* Sedikit lebih besar */
             font-weight: 600;
-            transition: var(--transition);
+            padding-top: 0.5rem;
+            /* Padding agar tidak terlalu mepet */
+        }
+
+        .sidebar-header h2 i {
+            color: var(--accent-color);
+            /* Warna aksen untuk ikon */
         }
 
         .sidebar-nav {
             flex-grow: 1;
-            overflow-y: auto;
+            /* overflow-y: auto; sudah di .sidebar */
             padding: 0 0.5rem;
-            scrollbar-width: none;
-            /* Firefox */
-            -ms-overflow-style: none;
-            /* IE and Edge */
-        }
-
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .sidebar-nav::-webkit-scrollbar {
-            display: none;
         }
 
         .sidebar ul {
             list-style: none;
-            padding: 0 0.5rem;
+            padding: 0;
+            /* Dihapus padding kiri agar konsisten */
         }
 
         .sidebar ul li {
             margin-bottom: 0.5rem;
-            position: relative;
         }
 
         .sidebar ul li a {
@@ -159,65 +200,83 @@
             font-weight: 400;
             position: relative;
             overflow: hidden;
+            /* Untuk efek hover yang lebih baik */
         }
 
         .sidebar ul li a i {
-            margin-right: 0.75rem;
+            margin-right: 0.85rem;
+            /* Sedikit lebih jauh */
             font-size: 1.1rem;
             width: 24px;
             text-align: center;
-            transition: var(--transition);
         }
 
-        .sidebar ul li a:hover {
-            background: linear-gradient(90deg, rgba(67, 97, 238, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%);
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active:hover {
+            /* Hover state untuk link aktif juga */
+            background: var(--sidebar-hover);
             color: white;
-            transform: translateX(5px);
+            transform: translateX(3px);
+            /* Efek geser halus */
         }
 
         .sidebar ul li a.active {
             background: var(--primary-color);
             color: white;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+            /* Shadow lebih lembut */
         }
 
         /* Tooltip for collapsed sidebar */
-        body.sidebar-collapsed .sidebar ul li a:hover::after {
+        body.sidebar-collapsed .sidebar ul li a::after {
             content: attr(data-tooltip);
             position: absolute;
-            left: 100%;
+            left: calc(var(--sidebar-width-collapsed) + 5px);
+            /* Muncul di kanan sidebar collapsed */
             top: 50%;
             transform: translateY(-50%);
-            background: var(--sidebar-bg);
+            background: #333;
+            /* Warna tooltip */
             color: white;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 4px;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             white-space: nowrap;
-            margin-left: 10px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             opacity: 0;
-            animation: fadeIn 0.3s forwards;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
-            z-index: 1000;
+            /* Agar tidak mengganggu hover di ikon */
+            z-index: 1050;
+            /* Di atas elemen lain */
         }
 
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                margin-left: 15px;
-            }
+        body.sidebar-collapsed .sidebar ul li a:hover::after {
+            opacity: 1;
+            visibility: visible;
         }
+
 
         /* Main Content Area */
-        .main-content {
+        .main-wrapper {
+            /* Wrapper baru untuk main-content dan footer */
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            /* Full viewport height */
+            margin-left: var(--sidebar-width-expanded);
+            /* Space untuk sidebar expanded */
+            transition: margin-left var(--transition);
             overflow: hidden;
-            transition: var(--transition);
+            /* Mencegah double scrollbar dari body */
+        }
+
+        body.sidebar-collapsed .main-wrapper {
+            margin-left: var(--sidebar-width-collapsed);
+            /* Space untuk sidebar collapsed */
         }
 
         /* Header Styles */
@@ -226,22 +285,21 @@
             justify-content: space-between;
             align-items: center;
             background-color: var(--white-bg);
-            padding: 1.25rem 2rem;
+            padding: 0 2rem;
+            /* Disesuaikan paddingnya */
             box-shadow: var(--shadow-light);
-            position: sticky;
-            top: 0;
-            z-index: 100;
             height: var(--header-height);
+            flex-shrink: 0;
+            /* Agar header tidak mengecil */
+            z-index: 1020;
+            /* Di bawah sidebar jika sidebar fixed */
         }
 
-        .header h1 {
-            margin: 0;
-            font-size: 1.75rem;
-            color: var(--text-color);
-            font-weight: 600;
+        .header-left {
+            display: flex;
+            align-items: center;
         }
 
-        /* Toggle button style */
         .sidebar-toggle {
             background: none;
             border: none;
@@ -251,9 +309,9 @@
             padding: 0.5rem;
             margin-right: 1rem;
             display: flex;
+            /* Defaultnya selalu tampil, diatur di media query */
             align-items: center;
             justify-content: center;
-            transition: var(--transition);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -264,28 +322,22 @@
             color: var(--primary-color);
         }
 
-        .header {
-            flex-shrink: 0;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100px;
-        }
-
-        .header-left h3 {
-            font-weight: 500;
+        .header-title-static {
+            /* Class baru untuk judul statis */
+            font-weight: 600;
+            /* Dibuat lebih tebal */
             margin: 0;
-            padding: 0;
-            color: var(--text-color);
+            font-size: 1.25rem;
+            /* Disesuaikan ukurannya */
+            color: var(--primary-color);
+            /* Warna primer */
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
+            /* Jarak antar elemen user info */
         }
 
         .user-info .user-avatar {
@@ -298,21 +350,21 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            transition: var(--transition);
-        }
-
-        .user-info:hover .user-avatar {
-            transform: scale(1.1);
+            font-size: 1rem;
+            /* Ukuran font avatar */
         }
 
         .user-info .user-details {
             display: flex;
             flex-direction: column;
+            text-align: left;
+            /* Agar teks rata kanan */
         }
 
         .user-info .user-name {
             font-weight: 500;
             color: var(--text-color);
+            font-size: 0.9rem;
         }
 
         .user-info .user-role {
@@ -322,76 +374,76 @@
 
         /* Content Area */
         .content-wrapper {
+            /* Ini akan menjadi area scroll utama */
             flex-grow: 1;
             overflow-y: auto;
-            padding: 2rem;
+            /* Hanya content-wrapper yang scroll */
+            padding: 1.5rem;
+            /* Padding konsisten */
             background-color: var(--light-bg);
         }
 
-        .page-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .page-title h2 {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            font-weight: 600;
-        }
+        /* .content-area tidak perlu style khusus jika .content-wrapper sudah menangani padding */
 
         /* Footer */
         .footer {
             height: var(--footer-height);
             text-align: center;
-            padding: 1.5rem;
-            background-color: transparent;
+            padding: 1rem;
+            /* Padding yang cukup */
+            background-color: var(--white-bg);
+            /* Warna background footer */
             color: var(--text-light);
             flex-shrink: 0;
+            /* Agar footer tidak mengecil */
             font-size: 0.875rem;
+            border-top: 1px solid var(--border-color);
+            /* Garis pemisah */
+        }
+
+        .footer p {
+            margin: 0;
         }
 
         /* Responsive Adjustments */
         @media (max-width: 992px) {
             .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                z-index: 1000;
                 transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            body.sidebar-collapsed .sidebar {
-                transform: translateX(-100%);
+                /* Sembunyikan di luar layar */
+                /* position: fixed; sudah di atas */
             }
 
             .sidebar.active {
+                /* Saat mobile dan aktif */
                 transform: translateX(0);
+                width: var(--sidebar-width-expanded);
+                /* Lebar tetap saat aktif di mobile */
             }
 
-            .sidebar-toggle {
-                display: block;
+            body.sidebar-collapsed .sidebar {
+                /* Saat mobile, collapsed berarti tersembunyi */
+                transform: translateX(-100%);
             }
 
-            .main-content {
+            .main-wrapper {
                 margin-left: 0;
+                /* Konten utama full width saat sidebar mobile tersembunyi */
             }
+
+            /* .sidebar-toggle selalu tampil di mobile, tidak perlu diubah */
         }
 
         @media (max-width: 768px) {
             .header {
-                padding: 1rem;
-                height: 60px;
+                padding: 0 1rem;
+                /* Kurangi padding header */
+                height: 65px;
+                /* Sesuaikan tinggi header */
             }
 
-            .header-left h3 {
-                margin-top: 15px;
-                font-size: 1rem;
+            .header-title-static {
+                font-size: 1.1rem;
+                /* Perkecil judul di mobile */
             }
 
             .content-wrapper {
@@ -400,32 +452,23 @@
 
             .user-info .user-details {
                 display: none;
-            }
-
-            .sidebar-toggle {
-                margin-right: 0.5rem;
-                width: 36px;
-                height: 36px;
+                /* Sembunyikan detail user, hanya avatar */
             }
         }
 
         @media (max-width: 576px) {
             .sidebar {
-                width: 80%;
+                width: 220px;
+                /* Lebar sidebar mobile bisa disesuaikan */
             }
 
-            .content-wrapper {
-                padding: 0.75rem;
+            .sidebar.active {
+                width: 220px;
             }
 
-            .page-title {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-
-            .page-title h2 {
-                font-size: 1.25rem;
+            .header-title-static {
+                display: none;
+                /* Sembunyikan judul di layar sangat kecil jika perlu */
             }
         }
     </style>
@@ -435,15 +478,15 @@
 <body>
     @auth
         @if (Auth::user()->role === 'admin')
-            @include('layouts.sidebar-admin')
+            @include('layouts.sidebar-admin') {{-- Pastikan path ini benar --}}
         @elseif (Auth::user()->role === 'dosen')
-            @include('layouts.sidebar-dosen')
+            @include('layouts.sidebar-dosen') {{-- Pastikan path ini benar --}}
         @elseif (Auth::user()->role === 'mahasiswa')
-            @include('layouts.sidebar-mahasiswa')
+            @include('layouts.sidebar-mahasiswa') {{-- Pastikan path ini benar --}}
         @endif
     @endauth
 
-    <div class="main-content">
+    <div class="main-wrapper">
         <div class="header">
             <div class="header-left">
                 @auth
@@ -451,16 +494,17 @@
                         <i class="fas fa-bars"></i>
                     </button>
                 @endauth
-                <h3>@yield('header_title')</h3>
+                {{-- PERUBAHAN DI SINI --}}
+                <h3 class="header-title-static">KELOMPOK 6</h3>
             </div>
 
             @auth
                 <div class="user-info">
                     <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
                     </div>
                     <div class="user-details">
-                        <span class="user-name">{{ Auth::user()->profile_name }}</span>
+                        <span class="user-name">{{ Auth::user()->profile_name ?? Auth::user()->name }}</span>
                         <span class="user-role">{{ ucfirst(Auth::user()->role) }}</span>
                     </div>
                 </div>
@@ -468,67 +512,88 @@
         </div>
 
         <div class="content-wrapper">
-            <div class="content-area">
-                @yield('content')
-            </div>
-
-            <footer class="footer">
-                <p>&copy; {{ date('Y') }} Sistem Akademik. All rights reserved.</p>
-            </footer>
+            @yield('content')
         </div>
+
+        <footer class="footer">
+            <p>&copy; {{ date('Y') }} Sistem Akademik - KELOMPOK 6. All rights reserved.</p>
+        </footer>
     </div>
 
-    {{-- @stack('scripts') --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sidebarToggle = document.getElementById('sidebarToggle');
             const body = document.body;
-            const sidebar = document.querySelector('.sidebar');
+            const sidebar = document.querySelector('.sidebar'); // Pastikan hanya ada satu .sidebar
 
-            if (sidebarToggle) {
-                // Toggle sidebar state
-                sidebarToggle.addEventListener('click', function () {
-                    if (window.innerWidth <= 992) {
-                        sidebar.classList.toggle('active');
-                    } else {
+            if (sidebarToggle && sidebar) {
+                // Fungsi untuk toggle sidebar
+                function toggleSidebar() {
+                    if (window.innerWidth <= 992) { // Mode mobile/tablet
+                        sidebar.classList.toggle('active'); // Untuk menampilkan/menyembunyikan
+                        // Tidak perlu mengubah body.sidebar-collapsed di mobile
+                    } else { // Mode desktop
                         body.classList.toggle('sidebar-collapsed');
                         localStorage.setItem('sidebarState', body.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded');
                     }
-                });
+                }
+                sidebarToggle.addEventListener('click', toggleSidebar);
 
-                // Load saved state
+                // Load saved state untuk desktop
                 const savedState = localStorage.getItem('sidebarState');
-                if (savedState === 'collapsed' && window.innerWidth > 992) {
-                    body.classList.add('sidebar-collapsed');
+                if (window.innerWidth > 992) { // Hanya terapkan state tersimpan di desktop
+                    if (savedState === 'collapsed') {
+                        body.classList.add('sidebar-collapsed');
+                    } else {
+                        body.classList.remove('sidebar-collapsed'); // Pastikan defaultnya expanded jika tidak ada state
+                    }
+                } else {
+                    // Di mobile, pastikan sidebar tidak collapsed secara default dari body class
+                    body.classList.remove('sidebar-collapsed');
+                    sidebar.classList.remove('active'); // Pastikan tersembunyi awal
                 }
 
-                // Add data-tooltip attributes to sidebar links
+
+                // Tambahkan data-tooltip untuk link sidebar
                 document.querySelectorAll('.sidebar-nav a').forEach(link => {
-                    if (link.querySelector('span')) {
-                        link.setAttribute('data-tooltip', link.querySelector('span').textContent);
+                    const spanText = link.querySelector('span');
+                    if (spanText) {
+                        link.setAttribute('data-tooltip', spanText.textContent.trim());
                     }
                 });
 
-                // Close sidebar when clicking outside on mobile
+                // Menutup sidebar saat klik di luar area sidebar (mode mobile)
                 document.addEventListener('click', function (e) {
-                    if (window.innerWidth <= 992 && !sidebar.contains(e.target) &&
-                        e.target !== sidebarToggle && !sidebarToggle.contains(e.target)) {
-                        sidebar.classList.remove('active');
+                    if (window.innerWidth <= 992 && sidebar.classList.contains('active')) {
+                        if (!sidebar.contains(e.target) && e.target !== sidebarToggle && !sidebarToggle.contains(e.target)) {
+                            sidebar.classList.remove('active');
+                        }
                     }
                 });
-            }
 
-            // Handle window resize
-            window.addEventListener('resize', function () {
-                if (window.innerWidth > 992) {
-                    sidebar.classList.remove('active');
-                }
-            });
+                // Menyesuaikan state sidebar saat ukuran window berubah
+                window.addEventListener('resize', function () {
+                    if (window.innerWidth > 992) {
+                        sidebar.classList.remove('active'); // Sembunyikan overlay mobile
+                        // Kembalikan state desktop dari localStorage jika ada
+                        if (localStorage.getItem('sidebarState') === 'collapsed') {
+                            body.classList.add('sidebar-collapsed');
+                        } else {
+                            body.classList.remove('sidebar-collapsed');
+                        }
+                    } else {
+                        // Di mobile, hapus class collapsed dari body agar tidak mempengaruhi layout utama
+                        body.classList.remove('sidebar-collapsed');
+                        sidebar.classList.remove('active'); // Pastikan tersembunyi saat resize ke mobile
+                    }
+                });
+            } else {
+                if (!sidebarToggle) console.error('Sidebar toggle button not found');
+                if (!sidebar) console.error('Sidebar element not found');
+            }
         });
     </script>
     @stack('scripts')

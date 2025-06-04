@@ -57,7 +57,14 @@
                                 <a href="{{ route('admin.absenDosens.index') }}"
                                         class="{{ Request::routeIs('admin.absenDosens.*') ? 'active' : '' }}">
                                         <i class="fas fa-clipboard-check"></i>
-                                        <span>Absen Dosen</span>
+                                        <span>Presensi Dosen</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="{{ route('admin.kelolaPresensi.index') }}"
+                                        class="{{ Request::routeIs('admin.kelolaPresensi.*') ? 'active' : '' }}">
+                                        <i class="fas fa-user-check"></i>
+                                        <span>Presensi Mahasiswa</span>
                                 </a>
                         </li>
                         <li>

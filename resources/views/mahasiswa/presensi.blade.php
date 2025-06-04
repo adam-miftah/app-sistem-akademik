@@ -1,209 +1,215 @@
+{{-- File: resources/views/mahasiswa/presensi.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Presensi Mahasiswa')
 @section('header_title', 'Presensi Kuliah')
 
 @section('content')
-  <style>
-    /* Notifikasi */
+    <style>
+    /* Notifikasi Global (jika ada dari redirect atau alert AJAX) */
     .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #28a745;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+      background-color: #d1e7dd;
+      color: #0f5132;
+      padding: 1rem;
+      border-radius: 0.375rem; /* rounded-md */
+      margin-bottom: 1.5rem; /* mb-6 */
+      border-left: 4px solid #0f5132; /* Warna border lebih gelap */
+      display: flex;
+      align-items: center;
+      gap: 0.75rem; /* space-x-3 */
     }
 
     .alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #dc3545;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+      background-color: #f8d7da;
+      color: #842029;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid #842029;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
 
     /* Header Halaman */
     .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem; /* mb-6 */
+      flex-wrap: wrap;
+      gap: 1rem; /* space-x-4 atau space-y-4 tergantung flex-direction */
     }
 
     .page-title {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    font-weight: 600;
+      margin: 0;
+      /* color: var(--text-color); Sesuaikan dengan variabel CSS Anda */
+      color: #333; /* Contoh warna default */
+      font-size: 1.5rem; /* text-2xl */
+      font-weight: 600; /* font-semibold */
     }
 
-    /* Tabel Data */
+    /* Kontainer Tabel Data */
     .data-table-container {
-    overflow-x: auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    margin-bottom: 2rem;
+      overflow-x: auto;
+      background: white;
+      border-radius: 0.75rem; /* rounded-xl */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-lg */
+      margin-bottom: 2rem; /* mb-8 */
     }
 
     .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px;
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px; /* Untuk memastikan tabel tidak terlalu sempit di layar kecil sebelum scroll */
     }
 
     .data-table thead {
-    background-color: #4361ee;
-    color: white;
-    }
-
-    .time-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    background: #f0fdf9;
-    color: #0d9488;
-    font-weight: 500;
-    }
-
-    .ruangan-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: #e0f2fe;
-    color: #0369a1;
-    font-weight: 500;
-    font-size: 0.85rem;
-    }
-
-    .data-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 500;
-    }
-
-    .data-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f0f0f0;
-    }
-
-    .data-table tr:last-child td {
-    border-bottom: none;
-    }
-
-    .data-table tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    .page-title {
-    margin: 0;
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Form Presensi */
-    .attendance-form {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    }
-
-    .status-select {
-    min-width: 100px;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    }
-
-    .attendance-btn {
-    background-color: #4361ee;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
-    }
-
-    .attendance-btn:hover {
-    background-color: #3a56d4;
-    }
-
-    /* Tampilan Kosong */
-    .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-    }
-
-    .empty-state i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #adb5bd;
-    }
-
-    /* Responsif */
-    @media (max-width: 992px) {
-
-    .data-table td:nth-child(3),
-    .data-table th:nth-child(3) {
-      display: none;
-    }
-    }
-
-    @media (max-width: 768px) {
-    .page-header {
-      flex-direction: column;
-      align-items: flex-start;
+      background-color: #4361ee; /* Warna tema Anda */
+      color: white;
     }
 
     .data-table th,
     .data-table td {
-      padding: 0.75rem;
+      padding: 1rem; /* p-4 */
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+    }
+    .data-table th {
+      font-weight: 500; /* font-medium */
     }
 
-    .attendance-form {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 6px;
+    .data-table tr:last-child td {
+      border-bottom: none;
     }
 
-    .status-select {
-      width: 100%;
-    }
-    }
-
-    @media (max-width: 576px) {
-
-    .data-table td:nth-child(4),
-    .data-table th:nth-child(4) {
-      display: none;
+    .data-table tr:hover {
+      background-color: rgba(67, 97, 238, 0.05); /* Efek hover lembut */
     }
 
-    .time-badge i {
-      display: none;
+    /* Badge untuk Waktu dan Ruangan */
+    .time-badge, .ruangan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem; /* space-x-1.5 */
+      padding: 0.375rem 0.75rem; /* py-1.5 px-3 */
+      border-radius: 9999px; /* rounded-full */
+      font-weight: 500; /* font-medium */
+      font-size: 0.875rem; /* text-sm */
     }
+    .time-badge {
+      background-color: #ecfdf5; /* bg-emerald-50 */
+      color: #059669; /* text-emerald-700 */
     }
-  </style>
+    .ruangan-badge {
+      background-color: #eff6ff; /* bg-blue-50 */
+      color: #1d4ed8; /* text-blue-700 */
+    }
 
-  <div class="content-area">
+    /* Tampilan Kosong (Empty State) */
+    .empty-state {
+      text-align: center;
+      padding: 2rem; /* p-8 */
+      color: #6b7280; /* text-gray-500 */
+    }
+    .empty-state i {
+      font-size: 2.5rem; /* text-4xl */
+      margin-bottom: 1rem; /* mb-4 */
+      color: #9ca3af; /* text-gray-400 */
+    }
+    .empty-state h3 {
+      font-size: 1.25rem; /* text-xl */
+      font-weight: 600;
+      color: #374151; /* text-gray-700 */
+    }
+
+    /* --- STYLING BARU UNTUK TOGGLE DAN BADGE PRESENSI MAHASISWA --- */
+    .presensi-controls-mahasiswa { /* Class unik untuk mahasiswa */
+      display: flex;
+      align-items: center;
+      gap: 0.75rem; /* Jarak antara toggle dan badge */
+      justify-content: center; /* Agar di tengah jika kolomnya text-center */
+    }
+
+    /* Menggunakan style toggle switch dari halaman dosen */
+    .form-switch .form-check-input { /* Ini adalah class Bootstrap standar, jadi style akan berlaku global jika tidak di-scope */
+      width: 3.5em; 
+      height: 1.75em;
+      cursor: pointer;
+      background-color: #e74c3c; /* Warna default (Tidak Hadir / Alpha) */
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+      border-color: #c0392b; 
+      transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, background-position 0.2s ease-in-out;
+      box-shadow: none; 
+    }
+    .form-switch .form-check-input:focus {
+      border-color: #c0392b; 
+      box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25); 
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+    .form-switch .form-check-input:checked {
+      background-color: #2ecc71; /* Warna saat checked (Hadir) */
+      border-color: #27ae60;
+    }
+    .form-switch .form-check-input:checked:focus {
+      border-color: #27ae60; 
+      box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25); 
+    }
+
+    /* Menggunakan style attendance badge dari halaman dosen */
+    .attendance-badge { /* Ini adalah class yang sama, jadi style akan berlaku global */
+      display: inline-block;
+      padding: 5px 12px; 
+      border-radius: 15px; 
+      font-size: 0.8rem; 
+      font-weight: 600;  
+      letter-spacing: 0.5px;
+      text-transform: uppercase; 
+      min-width: 100px; 
+      text-align: center;
+      transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    }
+    .badge-present { /* Untuk status Hadir */
+      background-color: #2ecc71; 
+      color: white;
+    }
+    .badge-absent { /* Untuk status Tidak Hadir / Alpha */
+      background-color: #e74c3c; 
+      color: white;
+    }
+    .badge-processing { /* Badge saat loading */
+      background-color: #bdc3c7; /* Abu-abu netral */
+      color: #2c3e50;
+      cursor: default;
+    }
+     .presensi-info-mahasiswa { /* Class unik untuk info presensi mahasiswa */
+      font-size: 0.75rem; /* text-xs */
+      color: #6b7280; /* text-gray-500 */
+      display: block; 
+      margin-top: 0.25rem; /* mt-1 */
+    }
+    /* --- AKHIR STYLING BARU --- */
+
+    /* Responsif (sudah ada sebelumnya, pastikan tidak konflik) */
+    @media (max-width: 992px) { 
+      .data-table td:nth-child(3), .data-table th:nth-child(3) { display: none; }
+    }
+    @media (max-width: 768px) { 
+      .page-header { flex-direction: column; align-items: flex-start; }
+      .data-table th, .data-table td { padding: 0.75rem; }
+      .presensi-controls-mahasiswa { flex-direction: column; gap: 0.5rem; } 
+      .data-table td:nth-child(4), .data-table th:nth-child(4) { display: none; }
+    }
+    @media (max-width: 576px) { 
+      .time-badge i { display: none; }
+      .time-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+      .page-title { font-size: 1.25rem; }
+    }
+    </style>
+
+    <div class="content-area">
+    <div id="global-alert-container-mahasiswa"></div> {{-- Container alert unik --}}
+
     @if(session('success'))
     <div class="alert-success">
     <i class="fas fa-check-circle"></i>
@@ -231,23 +237,23 @@
     </div>
     </div>
     @else
-    <div class="data-table-container">
-    <table class="data-table">
+      <div class="data-table-container">
+      <table class="data-table">
       <thead>
       <tr>
       <th>Mata Kuliah</th>
       <th class="text-nowrap">Jam Kuliah</th>
       <th>Ruangan</th>
       <th>Dosen</th>
-      <th class="text-center">Aksi</th>
+      <th class="text-center" style="min-width: 200px;">Presensi Anda</th>
       </tr>
       </thead>
       <tbody>
       @foreach($jadwalHariIni as $jadwal)
-      <tr>
+      <tr id="jadwal-row-mahasiswa-{{ $jadwal->id }}"> {{-- ID unik --}}
       <td>
-      <div class="fw-bold">{{ $jadwal->mataKuliah->nama_mk }}</div>
-      <small class="text-muted">{{ $jadwal->mataKuliah->kode_mk }}</small>
+      <div class="fw-bold">{{ $jadwal->mataKuliah->nama_mk ?? 'N/A' }}</div>
+      <small class="text-muted">{{ $jadwal->mataKuliah->kode_mk ?? 'N/A' }}</small>
       </td>
       <td class="text-nowrap">
       <span class="time-badge">
@@ -259,34 +265,177 @@
       <td>
       <span class="ruangan-badge">{{ $jadwal->ruangan }}</span>
       </td>
-      <td>{{ $jadwal->dosen->nama }}</td>
+      <td>{{ $jadwal->dosen->nama ?? 'N/A' }}</td>
       <td class="text-center">
-      <form action="{{ route('mahasiswa.presensi.submit') }}" method="POST" class="attendance-form">
-      @csrf
-      <input type="hidden" name="pengampu_mata_kuliah_id" value="{{ $jadwal->id }}">
-
-      <select name="status_kehadiran" class="status-select @error('status_kehadiran') is-invalid @enderror"
-      required>
-      <option value="">Pilih Status</option>
-      <option value="Hadir">Hadir</option>
-      <option value="Sakit">Sakit</option>
-      <option value="Izin">Izin</option>
-      <option value="Alpha">Alpha</option>
-      </select>
-      <button type="submit" class="attendance-btn">
-      <i class="fas fa-check"></i>
-      <span class="d-none d-md-inline">Presensi</span>
-      </button>
-      @error('status_kehadiran')
-      <div class="invalid-feedback d-block">{{ $message }}</div>
-      @enderror
-      </form>
+      @php
+      $presensiDetail = $presensiSudahDilakukan->get($jadwal->id);
+      $statusPresensi = $presensiDetail ? $presensiDetail->status_kehadiran : null;
+      $isHadir = $statusPresensi === 'Hadir'; // Dianggap Hadir jika statusnya 'Hadir'
+      @endphp
+      <div class="presensi-controls-mahasiswa" data-jadwal-id="{{ $jadwal->id }}">
+        <div class="form-check form-switch">
+        <input class="form-check-input presensi-mahasiswa-toggle" 
+         type="checkbox" 
+         role="switch"
+         id="presensiToggleMahasiswa{{ $jadwal->id }}" 
+         data-pengampu-id="{{ $jadwal->id }}"
+         {{ $isHadir ? 'checked' : '' }}>
+        </div>
+        <span id="presensi-mahasiswa-status-text-{{ $jadwal->id }}"
+        class="attendance-badge {{ $isHadir ? 'badge-present' : 'badge-absent' }}">
+        {{ $statusPresensi ? $statusPresensi : 'Belum Presensi' }}
+        </span>
+      </div>
+      <small class="presensi-info-mahasiswa" id="presensi-info-mahasiswa-{{ $jadwal->id }}">
+        @if($statusPresensi)
+      Status terakhir: {{ $statusPresensi }}
+      @else
+      Silakan lakukan presensi.
+      @endif
+      </small>
       </td>
       </tr>
-    @endforeach
+      @endforeach
       </tbody>
-    </table>
-    </div>
+      </table>
+      </div>
     @endif
-  </div>
+    </div>
 @endsection
+
+@push('scripts')
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const globalAlertContainer = document.getElementById('global-alert-container-mahasiswa'); // Container alert unik
+
+    function showAlert(type, message, container = globalAlertContainer) {
+      if (!container) {
+        console.warn('Alert container not found for mahasiswa presensi.');
+        return;
+      }
+      const existingAlert = container.querySelector('.dynamic-alert');
+      if (existingAlert) existingAlert.remove();
+
+      const alertElement = document.createElement('div');
+      alertElement.className = `dynamic-alert alert alert-${type} alert-dismissible fade show`; 
+      alertElement.setAttribute('role', 'alert');
+      alertElement.style.display = 'flex';
+      alertElement.style.alignItems = 'center';
+      alertElement.style.gap = '0.75rem';
+      alertElement.style.padding = '1rem'; 
+      alertElement.style.borderRadius = '0.375rem'; 
+      alertElement.style.marginBottom = '1rem';
+
+      let iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+      alertElement.innerHTML = `<i class="fas ${iconClass} me-2"></i> <span>${message}</span> <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+
+      if (type === 'success') {
+        alertElement.style.backgroundColor = '#d1e7dd'; 
+        alertElement.style.color = '#0f5132'; 
+      } else { 
+        alertElement.style.backgroundColor = '#f8d7da'; 
+        alertElement.style.color = '#842029'; 
+      }
+      container.insertBefore(alertElement, container.firstChild);
+      setTimeout(() => {
+        if (alertElement.parentElement) {
+          if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+            const bsAlertInstance = bootstrap.Alert.getInstance(alertElement);
+            if (bsAlertInstance) bsAlertInstance.close();
+            else alertElement.remove();
+          } else {
+            alertElement.remove();
+          }
+        }
+      }, 7000);
+    }
+
+    document.querySelectorAll('.presensi-mahasiswa-toggle').forEach(toggle => {
+      toggle.addEventListener('change', function () {
+        const pengampuId = this.dataset.pengampuId;
+        const isChecked = this.checked; // Status BARU dari toggle
+        const statusTextSpan = document.getElementById(`presensi-mahasiswa-status-text-${pengampuId}`);
+        const presensiInfoSpan = document.getElementById(`presensi-info-mahasiswa-${pengampuId}`);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        if (!statusTextSpan || !presensiInfoSpan) {
+          console.error('Element status atau info tidak ditemukan untuk pengampu ID (mahasiswa):', pengampuId);
+          return;
+        }
+        if (!csrfToken) {
+          showAlert('danger', 'Kesalahan konfigurasi: CSRF token tidak ditemukan.');
+          console.error('CSRF token not found.');
+          return;
+        }
+
+        const previousCheckedState = !isChecked; // Status SEBELUM diubah, untuk revert
+
+        // Optimistic UI Update
+        statusTextSpan.textContent = 'Memproses...';
+        statusTextSpan.classList.remove('badge-present', 'badge-absent', 'badge-processing');
+        statusTextSpan.classList.add('badge-processing');
+        this.disabled = true; 
+
+        const statusYangDikirim = isChecked ? 'Hadir' : 'Tidak Hadir';
+
+        fetch('{{ route("mahasiswa.presensi.submit") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            pengampu_mata_kuliah_id: pengampuId,
+            status_kehadiran: statusYangDikirim,
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(errData => { 
+              errData.statusCode = response.status; 
+              throw errData; 
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          this.disabled = false; 
+          if (data.success && data.status_kehadiran_display) {
+            showAlert('success', data.message);
+            statusTextSpan.textContent = data.status_kehadiran_display;
+            statusTextSpan.classList.remove('badge-processing', 'badge-present', 'badge-absent');
+            statusTextSpan.classList.add(data.status_kehadiran_display === 'Hadir' ? 'badge-present' : 'badge-absent');
+            presensiInfoSpan.textContent = 'Status presensi: ' + data.status_kehadiran_display;
+          } else {
+            // Revert UI on failure from server (data.success === false)
+            this.checked = previousCheckedState;
+            statusTextSpan.textContent = previousCheckedState ? 'Hadir' : 'Tidak Hadir';
+            statusTextSpan.classList.remove('badge-processing', 'badge-present', 'badge-absent');
+            statusTextSpan.classList.add(previousCheckedState ? 'badge-present' : 'badge-absent');
+            presensiInfoSpan.textContent = 'Gagal memperbarui. Status kembali ke sebelumnya.';
+            showAlert('danger', data.message || 'Gagal memperbarui presensi.');
+          }
+        })
+        .catch(error => {
+          this.disabled = false; 
+          // Revert UI on network error or other exceptions
+          this.checked = previousCheckedState;
+          statusTextSpan.textContent = previousCheckedState ? 'Hadir' : 'Tidak Hadir';
+          statusTextSpan.classList.remove('badge-processing', 'badge-present', 'badge-absent');
+          statusTextSpan.classList.add(previousCheckedState ? 'badge-present' : 'badge-absent');
+          presensiInfoSpan.textContent = 'Error. Status kembali ke sebelumnya.';
+
+          console.error('Fetch Error/Exception Mahasiswa Presensi:', error);
+          let msg = 'Tidak dapat terhubung ke server atau terjadi kesalahan.';
+          if (error && error.message) { 
+            msg = error.message; 
+          }
+          showAlert('danger', msg);
+        });
+      });
+    });
+  });
+  </script>
+@endpush
+

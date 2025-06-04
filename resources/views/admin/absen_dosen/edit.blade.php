@@ -48,9 +48,7 @@
       <select name="status" id="status" class="form-control" required>
       <option value="">-- Pilih Status --</option>
       <option value="Hadir" {{ old('status', $absenDosen->status) == 'Hadir' ? 'selected' : '' }}>Hadir</option>
-      <option value="Izin" {{ old('status', $absenDosen->status) == 'Izin' ? 'selected' : '' }}>Izin</option>
-      <option value="Sakit" {{ old('status', $absenDosen->status) == 'Sakit' ? 'selected' : '' }}>Sakit</option>
-      <option value="Alpha" {{ old('status', $absenDosen->status) == 'Alpha' ? 'selected' : '' }}>Alpha</option>
+      <option value="Alpha" {{ old('status', $absenDosen->status) == 'Alpha' ? 'selected' : '' }}>Tidak Hadir</option>
       </select>
     </div>
     <div class="form-group mb-3">

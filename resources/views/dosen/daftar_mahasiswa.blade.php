@@ -152,6 +152,8 @@
       margin-bottom: 1rem;
       color: #adb5bd;
     }
+    
+    
 
     /* Responsive Adjustments */
     @media (max-width: 992px) {
@@ -199,7 +201,7 @@
     @endif
 
     <div class="page-header">
-      <h3 class="page-title">Mahasiswa yang Terkait dengan Anda</h3>
+      <h3 class="page-title">Daftar Mahasiswa</h3>
     </div>
 
     {{-- Filter Form --}}
@@ -274,12 +276,12 @@
                     $displayedRuangan = $pengampuDetailForDisplay->ruangan;
                   }
                 } else {
-                  $displayedMataKuliah = 'Beberapa Mata Kuliah';
+                  $displayedMataKuliah = 'Pilih Mata Kuliah terlebih dahulu';
                 }
               @endphp
               <tr id="mahasiswa-row-{{ $mhs->id }}">
                 <td>
-                  <div class="fw-bold">{{ $mhs->nama }}</div>
+                  <div>{{ $mhs->nama }}</div>
                 </td>
                 <td>{{ $displayedMataKuliah }}</td>
                 <td>{{ $mhs->kelas ?? '-' }}</td>
@@ -293,7 +295,7 @@
                     </div>
                     <span id="presensi-status-text-{{ $mhs->id }}"
                       class="attendance-badge {{ $isHadirToday ? 'badge-present' : 'badge-absent' }}">
-                      {{ $isHadirToday ? 'Hadir' : 'Alpha' }}
+                      {{ $isHadirToday ? 'Hadir' : 'Tidak Hadir' }}
                     </span>
                   </div>
                 </td>
@@ -305,74 +307,144 @@
     @endif
   </div>
 
-  @push('scripts')
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const presensiToggles = document.querySelectorAll('.presensi-toggle');
-        const successAlert = document.querySelector('.alert-success');
-        const errorAlert = document.querySelector('.alert-danger');
+ @push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const presensiToggles = document.querySelectorAll('.presensi-toggle');
+    const contentArea = document.querySelector('.content-area'); // Container untuk alert dinamis
 
-        // Fungsi untuk menampilkan pesan alert global
-        function showAlert(alertElement, message) {
-          if (alertElement) {
-            alertElement.querySelector('div').textContent = message;
-            alertElement.style.display = 'flex';
-            setTimeout(() => alertElement.style.display = 'none', 5000);
-          }
+    // Fungsi untuk menampilkan pesan alert dinamis
+    function showAlert(type, message) {
+        // Hapus alert lama jika ada
+        const existingAlert = contentArea.querySelector('.dynamic-alert');
+        if (existingAlert) {
+            existingAlert.remove();
         }
 
-        presensiToggles.forEach(toggle => {
-          toggle.addEventListener('change', function () {
+        const alertElement = document.createElement('div');
+        alertElement.className = `dynamic-alert alert-${type}`; // e.g., alert-success or alert-danger
+        alertElement.style.display = 'flex';
+        alertElement.style.alignItems = 'center';
+        alertElement.style.gap = '0.75rem';
+        // Anda bisa menambahkan style lain yang diperlukan sesuai class .alert-success / .alert-danger Anda
+        // Jika class CSS Anda sudah mengatur padding, border-radius, margin, dll. maka tidak perlu style inline lagi.
+        // Pastikan class alert-success dan alert-danger punya style yang sesuai.
+        // Untuk styling minimal:
+        alertElement.style.padding = '1rem';
+        alertElement.style.borderRadius = '8px';
+        alertElement.style.marginBottom = '1.5rem';
+
+
+        if (type === 'success') {
+            alertElement.style.backgroundColor = '#d4edda';
+            alertElement.style.color = '#155724';
+            alertElement.style.borderLeft = '4px solid #28a745';
+            alertElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>${message}</span>`;
+        } else { // 'danger'
+            alertElement.style.backgroundColor = '#f8d7da';
+            alertElement.style.color = '#721c24';
+            alertElement.style.borderLeft = '4px solid #dc3545';
+            alertElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${message}</span>`;
+        }
+
+        // Sisipkan di bagian atas content-area
+        if (contentArea) {
+            contentArea.insertBefore(alertElement, contentArea.firstChild);
+        } else {
+            // Fallback jika .content-area tidak ditemukan
+            document.body.insertBefore(alertElement, document.body.firstChild);
+        }
+
+        // Efek fade out dan remove setelah 5 detik
+        setTimeout(() => {
+            alertElement.style.transition = 'opacity 0.5s ease';
+            alertElement.style.opacity = '0';
+            setTimeout(() => alertElement.remove(), 500); // Hapus dari DOM setelah transisi selesai
+        }, 5000);
+    }
+
+    presensiToggles.forEach(toggle => {
+        toggle.addEventListener('change', function () {
             const mahasiswaId = this.dataset.mahasiswaId;
-            const isPresent = this.checked;
+            const isPresentNewState = this.checked; // Keadaan BARU dari checkbox
             const statusTextSpan = document.getElementById(`presensi-status-text-${mahasiswaId}`);
             const row = document.getElementById(`mahasiswa-row-${mahasiswaId}`);
 
-            // Sembunyikan alert global yang mungkin sedang tampil
-            successAlert.style.display = 'none';
-            errorAlert.style.display = 'none';
+            // Simpan state SEBELUMNYA untuk revert jika error
+            const previousCheckedState = !isPresentNewState;
 
             // Animasi loading
-            row.style.opacity = '0.7';
-            statusTextSpan.textContent = 'Memproses...';
-            statusTextSpan.classList.remove('badge-present', 'badge-absent');
+            if(row) row.style.opacity = '0.7';
+            if(statusTextSpan) {
+                statusTextSpan.textContent = 'Memproses...';
+                statusTextSpan.classList.remove('badge-present', 'badge-absent'); // Hapus class lama segera
+            }
 
             fetch("{{ route('dosen.togglePresensiHarian') }}", {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-              },
-              body: JSON.stringify({
-                mahasiswa_id: mahasiswaId,
-                is_present: isPresent
-              })
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    mahasiswa_id: mahasiswaId,
+                    is_present: isPresentNewState
+                })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // Jika status HTTP bukan 2xx, coba parse error JSON jika ada
+                    return response.json().then(errData => {
+                        throw { status: response.status, data: errData };
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
-              row.style.opacity = '1';
-              if (data.success) {
-                statusTextSpan.textContent = data.status_kehadiran;
-                statusTextSpan.classList.add(data.status_kehadiran === 'Hadir' ? 'badge-present' : 'badge-absent');
-                showAlert(successAlert, data.message);
-              } else {
-                showAlert(errorAlert, data.message);
-                this.checked = !isPresent;
-                statusTextSpan.textContent = !isPresent ? 'Hadir' : 'Alpha';
-                statusTextSpan.classList.add(!isPresent ? 'badge-present' : 'badge-absent');
-              }
+                if(row) row.style.opacity = '1';
+                if (data.success) {
+                    if(statusTextSpan) {
+                        statusTextSpan.textContent = data.status_kehadiran; // Dari response controller ('Hadir' / 'Tidak Hadir')
+                        statusTextSpan.classList.remove('badge-present', 'badge-absent'); // Pastikan bersih
+                        statusTextSpan.classList.add(data.status_kehadiran === 'Hadir' ? 'badge-present' : 'badge-absent');
+                    }
+                    showAlert('success', data.message);
+                } else {
+                    // Gagal dari sisi server (data.success === false)
+                    this.checked = previousCheckedState; // Kembalikan checkbox
+                    if(statusTextSpan) {
+                        statusTextSpan.classList.remove('badge-present', 'badge-absent');
+                        statusTextSpan.textContent = previousCheckedState ? 'Hadir' : 'Tidak Hadir';
+                        statusTextSpan.classList.add(previousCheckedState ? 'badge-present' : 'badge-absent');
+                    }
+                    showAlert('danger', data.message || 'Gagal memperbarui presensi.');
+                }
             })
             .catch(error => {
-              row.style.opacity = '1';
-              console.error('Error:', error);
-              showAlert(errorAlert, 'Terjadi kesalahan. Silakan coba lagi.');
-              this.checked = !isPresent;
-              statusTextSpan.textContent = !isPresent ? 'Hadir' : 'Alpha';
-              statusTextSpan.classList.add(!isPresent ? 'badge-present' : 'badge-absent');
+                if(row) row.style.opacity = '1';
+                this.checked = previousCheckedState; // Kembalikan checkbox pada error network/parsing
+                 if(statusTextSpan) {
+                    statusTextSpan.classList.remove('badge-present', 'badge-absent');
+                    statusTextSpan.textContent = previousCheckedState ? 'Hadir' : 'Tidak Hadir';
+                    statusTextSpan.classList.add(previousCheckedState ? 'badge-present' : 'badge-absent');
+                }
+
+                console.error('Error:', error);
+                let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
+                if (error.data && error.data.message) {
+                    errorMessage = error.data.message;
+                    if(error.data.errors) { // Untuk error validasi
+                        const firstErrorKey = Object.keys(error.data.errors)[0];
+                        errorMessage += ` (${error.data.errors[firstErrorKey][0]})`;
+                    }
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                showAlert('danger', errorMessage);
             });
-          });
         });
-      });
-    </script>
-  @endpush
+    });
+});
+</script>
+@endpush
 @endsection

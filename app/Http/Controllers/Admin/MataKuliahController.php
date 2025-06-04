@@ -43,7 +43,7 @@ class MataKuliahController extends Controller
             'kode_mk' => 'required|string|max:20|unique:mata_kuliahs,kode_mk',
             'nama_mk' => 'required|string|max:255',
             'sks' => 'required|integer|min:1|max:6',
-            'kelas' => 'required|string|in:Reguler,Khusus,Pagi,Malam', 
+            'kelas' => 'required|string|in:Reguler A, Reguler B, Reguler CK, Reguler CS', 
             'deskripsi' => 'nullable|string',
         ]);
 

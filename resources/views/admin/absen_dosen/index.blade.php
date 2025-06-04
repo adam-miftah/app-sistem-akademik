@@ -363,7 +363,7 @@
       <tr>
         <td>{{ $loop->iteration + ($absenDosens->currentPage() - 1) * $absenDosens->perPage() }}</td>
         <td>{{ $absenDosen->dosen->nama ?? 'N/A' }}</td>
-        <td>{{ \Carbon\Carbon::parse($absenDosen->tanggal)->format('d-m-Y') }}</td>
+        <td>{{ \Carbon\Carbon::parse($absenDosen->tanggal)->format('d/m/Y') }}</td>
         <td>{{ $absenDosen->waktu_masuk ? \Carbon\Carbon::parse($absenDosen->waktu_masuk)->format('H:i') : '-' }}</td>
         <td>{{ $absenDosen->waktu_keluar ? \Carbon\Carbon::parse($absenDosen->waktu_keluar)->format('H:i') : '-' }}
         </td>

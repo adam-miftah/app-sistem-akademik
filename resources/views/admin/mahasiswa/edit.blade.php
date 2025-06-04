@@ -229,7 +229,6 @@
                         </select>
                     </div>
                 </div>
-                {{-- END NEW --}}
 
                 <div class="form-group">
                     <label for="email">Email</label>
@@ -253,32 +252,7 @@
                         placeholder="Alamat lengkap mahasiswa">{{ old('alamat', $mahasiswa->alamat) }}</textarea>
                 </div>
 
-                {{-- NEW: Password Reset Section for Admin --}}
-                <hr class="my-4">
-                <h5 class="mb-3 text-danger">Reset Password Akun Login</h5>
-                <div class="alert alert-info" role="alert">
-                    Kosongkan kolom password jika tidak ingin mengubahnya.
-                </div>
-                <div class="form-group">
-                    <label for="new_password">Password Baru</label>
-                    <div class="input-group">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="new_password" name="new_password" class="form-control"
-                            placeholder="Isi untuk mengubah password">
-                    </div>
-                    @error('new_password')
-                        <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label for="new_password_confirmation">Konfirmasi Password Baru</label>
-                    <div class="input-group">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="new_password_confirmation" name="new_password_confirmation"
-                            class="form-control" placeholder="Ketik ulang password baru">
-                    </div>
-                </div>
-                {{-- END NEW --}}
+
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">

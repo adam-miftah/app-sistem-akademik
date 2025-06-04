@@ -5,12 +5,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\DosenController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AbsenDosenController as AdminAbsenDosenController;
+use App\Http\Controllers\Admin\KelolaPresensiController;
 use App\Http\Controllers\Admin\MataKuliahController;
 use App\Http\Controllers\Admin\MahasiswaController as AdminMahasiswaController;
 use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
-use App\Http\Controllers\Admin\JadwalKuliahController; // Dipertahankan
+use App\Http\Controllers\Admin\JadwalKuliahController; 
 use App\Http\Controllers\Dosen\AbsenDosenController;
-use App\Http\Controllers\Admin\PengampuMataKuliahController; // Dipertahankan
+use App\Http\Controllers\Admin\PengampuMataKuliahController; 
 use App\Http\Controllers\Admin\NilaiMahasiswaController;
 use App\Http\Controllers\MahasiswaController;
 use Illuminate\Support\Facades\Route;
@@ -34,18 +35,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('dosens', DosenController::class);
     Route::resource('mataKuliahs', MataKuliahController::class);
     Route::resource('mahasiswas', AdminMahasiswaController::class);
-
-    // KELOLA JADWAL KULIAH (menggunakan JadwalKuliahController)
     Route::resource('jadwalKuliahs', JadwalKuliahController::class);
-
     Route::get('/mahasiswas/{mahasiswa}/kelas', [NilaiMahasiswaController::class, 'getMahasiswaKelas']);
     Route::get('/pengampu/dosen', [NilaiMahasiswaController::class, 'getDosenPengampu']);
-
-    // KELOLA PENUGASAN DOSEN (menggunakan PengampuMataKuliahController)
-    Route::resource('pengampuMataKuliah', PengampuMataKuliahController::class)->except(['show']); // Asumsi 'show' tidak diperlukan
-    
+    Route::resource('pengampuMataKuliah', PengampuMataKuliahController::class)->except(['show']); 
     Route::resource('nilaiMahasiswas', NilaiMahasiswaController::class)->except(['show']);
     Route::resource('absenDosens', AdminAbsenDosenController::class);
+    Route::get('kelola-presensi', [KelolaPresensiController::class, 'index'])->name('kelolaPresensi.index');
+    Route::get('kelola-presensi/{presensiMahasiswa}/edit', [KelolaPresensiController::class, 'edit'])->name('kelolaPresensi.edit');
+    Route::put('kelola-presensi/{presensiMahasiswa}', [KelolaPresensiController::class, 'update'])->name('kelolaPresensi.update');
+    Route::delete('kelola-presensi/{presensiMahasiswa}', [KelolaPresensiController::class, 'destroy'])->name('kelolaPresensi.destroy');
     Route::get('/settings/change-password', [AdminController::class, 'showChangePasswordForm'])->name('changePasswordForm');
     Route::post('/settings/change-password', [AdminController::class, 'changePassword'])->name('changePassword');
 });
@@ -77,7 +76,9 @@ Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->as('mahasisw
     Route::get('/presensi', [MahasiswaController::class, 'showPresensiForm'])->name('presensi.form');
     Route::post('/presensi', [MahasiswaController::class, 'submitPresensi'])->name('presensi.submit');
     Route::get('/detail-pribadi', [MahasiswaController::class, 'lihatDetailPribadi'])->name('lihatDetailPribadi');
-
+    Route::get('/profil', [MahasiswaController::class, 'lihatDetailPribadi'])->name('profil.detail');
+    Route::get('/profil/edit', [MahasiswaController::class, 'editDetailPribadi'])->name('profil.edit');
+    Route::put('/profil', [MahasiswaController::class, 'updateDetailPribadi'])->name('profil.update');
     Route::get('/settings/change-password', [MahasiswaController::class, 'showChangePasswordForm'])->name('change_password_form');
     Route::post('/settings/change-password', [MahasiswaController::class, 'changePassword'])->name('change_password');
 });

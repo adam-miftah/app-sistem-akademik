@@ -5,10 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\NilaiMahasiswa;
 use App\Models\PengampuMataKuliah;
 use App\Models\PresensiMahasiswa;
+use App\Models\Mahasiswa; // Make sure Mahasiswa model is imported
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Hash; // Keep for changePassword
 use Carbon\Carbon;
+use App\Models\MataKuliah; 
+use App\Models\Dosen;       
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule; // Required for unique email validation
 
 class MahasiswaController extends Controller
 {
@@ -20,23 +26,31 @@ class MahasiswaController extends Controller
             return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan untuk akun ini.');
         }
 
-        $kelasOptions = ['06TPLP001', '06TPLP002', '06TPLP003', '06TPLP004', '06TPLP005', '06TPLP006', '06TPLP007', '06TPLP008', '06TPLP009', '06TPLP0010'];
-        $upcomingClasses = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
-                                        ->orderBy('hari')
-                                        ->orderBy('jam_mulai')
-                                        ->with(['mataKuliah', 'dosen'])
-                                        ->get();
+        // Ensure $mahasiswa->kelas is not null before using it in a query
+        $kelasMahasiswa = $mahasiswa->kelas;
+        $upcomingClasses = collect(); // Default to empty collection
+
+        if ($kelasMahasiswa) {
+            $upcomingClasses = PengampuMataKuliah::where('kelas', $kelasMahasiswa)
+                ->orderBy('hari')
+                ->orderBy('jam_mulai')
+                ->with(['mataKuliah', 'dosen'])
+                ->get();
+        } else {
+            Log::warning('Mahasiswa ID ' . $mahasiswa->id . ' does not have a kelas assigned.');
+        }
+
 
         $recentGrades = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-                                        ->orderBy('created_at', 'desc')
-                                        ->limit(5)
-                                        ->with(['mataKuliah', 'dosen'])
-                                        ->get();
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->with(['mataKuliah', 'dosen'])
+            ->get();
 
         $nilaiMahasiswas = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-                                            ->with('mataKuliah')
-                                            ->orderBy('kelas', 'asc') // Diubah dari 'semester' ke 'kelas'
-                                            ->get();
+            ->with('mataKuliah')
+            ->orderBy('kelas', 'asc') 
+            ->get();
 
         $ipsData = [];
         $ipkData = [];
@@ -86,26 +100,27 @@ class MahasiswaController extends Controller
         if (!$mahasiswa) {
             return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan.');
         }
+        
+        $jadwalKuliahs = collect();
+        if ($mahasiswa->kelas) {
+            $jadwalKuliahs = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
+                ->with(['mataKuliah', 'dosen'])
+                ->orderBy('jam_mulai')
+                ->get();
+        }
 
-        $jadwalKuliahs = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
-                                            ->with(['mataKuliah', 'dosen'])
-                                            ->orderBy('jam_mulai')
-                                            ->get();
 
-        // Definisikan urutan hari yang Anda inginkan
         $dayOrder = [
-            'Senin' => 1,
-            'Selasa' => 2,
-            'Rabu' => 3,
-            'Kamis' => 4,
-            'Jumat' => 5,
-            'Sabtu' => 6,
-            'Minggu' => 7,
+            'Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4,
+            'Jumat' => 5, 'Sabtu' => 6, 'Minggu' => 7,
         ];
 
         $sortedJadwalKuliahs = $jadwalKuliahs->sort(function ($a, $b) use ($dayOrder) {
             $orderA = $dayOrder[$a->hari] ?? 99;
             $orderB = $dayOrder[$b->hari] ?? 99;
+            if ($orderA === $orderB) {
+                return strtotime($a->jam_mulai) <=> strtotime($b->jam_mulai);
+            }
             return $orderA <=> $orderB;
         });
 
@@ -120,17 +135,19 @@ class MahasiswaController extends Controller
         }
 
         $nilaiMahasiswas = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-                                            ->with(['mataKuliah', 'dosen'])
-                                            ->orderBy('kelas', 'asc')
-                                            ->get();
+            ->with(['mataKuliah', 'dosen'])
+            ->orderBy('kelas', 'asc')
+            ->get();
 
+        // Sort by mata kuliah name within each group later if needed, or ensure mataKuliah relation is loaded
         $nilaiMahasiswas = $nilaiMahasiswas->sortBy(function($nilai) {
-            return $nilai->mataKuliah->nama_mk;
+            return $nilai->mataKuliah->nama_mk ?? ''; // Handle if mataKuliah is null
         });
 
-        $nilaiPerKelas = $nilaiMahasiswas->groupBy('kelas'); // Diubah dari 'nilaiPerSemester' ke 'nilaiPerKelas'
 
-        return view('mahasiswa.khs', compact('mahasiswa', 'nilaiPerKelas')); // Diubah dari 'nilaiPerSemester'
+        $nilaiPerKelas = $nilaiMahasiswas->groupBy('kelas'); 
+
+        return view('mahasiswa.khs', compact('mahasiswa', 'nilaiPerKelas'));
     }
 
       public function lihatKRS()
@@ -140,20 +157,23 @@ class MahasiswaController extends Controller
         if (!$mahasiswa) {
             return redirect()->route('mahasiswa.dashboard')->with('error', 'Data mahasiswa tidak ditemukan.');
         }
-
-        $krsDetails = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
-                                         ->with(['mataKuliah', 'dosen'])
-                                         ->get();
+        
+        $krsDetails = collect();
+        if ($mahasiswa->kelas) {
+            $krsDetails = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
+                ->with(['mataKuliah', 'dosen'])
+                ->get();
+        }
 
         $totalSKS = $krsDetails->sum(function($item) {
             return $item->mataKuliah->sks ?? 0;
         });
 
         $krsDetails = $krsDetails->sortBy(function($item) {
-            return $item->mataKuliah->nama_mk;
+            return $item->mataKuliah->nama_mk ?? '';
         });
 
-        $displaySemesterTitle = 'Kelas ' . $mahasiswa->kelas;
+        $displaySemesterTitle = 'Kelas ' . ($mahasiswa->kelas ?? 'Belum Ada Kelas');
         return view('mahasiswa.krs', compact('mahasiswa', 'displaySemesterTitle', 'krsDetails', 'totalSKS'));
     }
 
@@ -164,6 +184,8 @@ class MahasiswaController extends Controller
         if (!$mahasiswa) {
             return redirect()->route('mahasiswa.dashboard')->with('error', 'Data pribadi tidak ditemukan.');
         }
+        // Eager load user relation if email is on user table
+        $mahasiswa->load('user'); 
 
         return view('mahasiswa.detail_pribadi', compact('mahasiswa'));
     }
@@ -176,9 +198,9 @@ class MahasiswaController extends Controller
         }
 
         $nilaiMahasiswas = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-                                            ->with('mataKuliah')
-                                            ->orderBy('kelas', 'asc')
-                                            ->get();
+            ->with('mataKuliah')
+            ->orderBy('kelas', 'asc')
+            ->get();
 
         $nilaiPerKelas = $nilaiMahasiswas->groupBy('kelas');
 
@@ -214,7 +236,7 @@ class MahasiswaController extends Controller
             }
 
             $semesterData['ipk_kelas'] = ($semesterData['total_sks_kelas'] > 0) ?
-                                        round($semesterData['total_sks_x_mutu_kelas'] / $semesterData['total_sks_kelas'], 2) : 0.00;
+                round($semesterData['total_sks_x_mutu_kelas'] / $semesterData['total_sks_kelas'], 2) : 0.00;
 
             $compiledGrades->push($semesterData);
 
@@ -226,32 +248,35 @@ class MahasiswaController extends Controller
         return view('mahasiswa.rangkuman_nilai', compact('mahasiswa', 'compiledGrades', 'ipkKumulatif', 'totalSKSKumulatif'));
     }
 
-    public function showPresensiForm()
+     public function showPresensiForm()
     {
         $mahasiswa = Auth::user()->mahasiswa;
 
         if (!$mahasiswa) {
-            return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan.');
+            Log::warning('Attempt to access presensi form without mahasiswa data for user ID: ' . Auth::id());
+            return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan untuk akun ini. Harap hubungi administrasi.');
         }
 
-        $dayOfWeek = Carbon::now()->dayOfWeek;
-        $namaHariIndonesia = [
-            0 => 'Minggu',
-            1 => 'Senin',
-            2 => 'Selasa',
-            3 => 'Rabu',
-            4 => 'Kamis',
-            5 => 'Jumat',
-            6 => 'Sabtu',
-        ];
-        $hariIni = $namaHariIndonesia[$dayOfWeek];
-        $jadwalHariIni = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
-                                            ->where('hari', $hariIni)
-                                            ->with(['mataKuliah', 'dosen'])
-                                            ->orderBy('jam_mulai')
-                                            ->get();
+        $hariIniCarbon = Carbon::now()->locale('id');
+        $hariIni = $hariIniCarbon->isoFormat('dddd');
+        $tanggalHariIni = $hariIniCarbon->toDateString();
 
-        return view('mahasiswa.presensi', compact('mahasiswa', 'jadwalHariIni', 'hariIni'));
+        $jadwalHariIni = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
+            ->where('hari', $hariIni)
+            ->with(['mataKuliah', 'dosen']) 
+            ->orderBy('jam_mulai')
+            ->get();
+
+        $presensiSudahDilakukan = collect(); 
+        if ($jadwalHariIni->isNotEmpty()) {
+            $presensiSudahDilakukan = PresensiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
+                ->whereDate('tanggal', $tanggalHariIni)
+                ->whereIn('pengampu_mata_kuliah_id', $jadwalHariIni->pluck('id'))
+                ->get() 
+                ->keyBy('pengampu_mata_kuliah_id'); 
+        }
+        
+        return view('mahasiswa.presensi', compact('mahasiswa', 'jadwalHariIni', 'hariIni', 'presensiSudahDilakukan'));
     }
 
     public function submitPresensi(Request $request)
@@ -259,47 +284,134 @@ class MahasiswaController extends Controller
         $mahasiswa = Auth::user()->mahasiswa;
 
         if (!$mahasiswa) {
-            return response()->json(['success' => false, 'message' => 'Data mahasiswa tidak ditemukan.'], 404);
-        }
-
-        $request->validate([
-            'pengampu_mata_kuliah_id' => 'required|exists:pengampu_mata_kuliahs,id',
-            'status_kehadiran' => 'required|string|in:Hadir,Sakit,Izin,Alpha',
-        ], [
-            'pengampu_mata_kuliah_id.required' => 'Mata kuliah wajib dipilih.',
-            'pengampu_mata_kuliah_id.exists' => 'Mata kuliah tidak valid.',
-            'status_kehadiran.required' => 'Status kehadiran wajib dipilih.',
-            'status_kehadiran.in' => 'Status kehadiran tidak valid.',
-        ]);
-
-        $pengampuMataKuliahId = $request->pengampu_mata_kuliah_id;
-        $tanggalPresensi = Carbon::today()->toDateString();
-
-        $existingPresensi = PresensiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-                                            ->where('pengampu_mata_kuliah_id', $pengampuMataKuliahId)
-                                            ->whereDate('tanggal', $tanggalPresensi)
-                                            ->first();
-
-        if ($existingPresensi) {
-            return response()->json(['success' => false, 'message' => 'Anda sudah melakukan presensi untuk mata kuliah ini hari ini.'], 409);
+            return response()->json(['success' => false, 'message' => 'Sesi tidak valid atau data mahasiswa tidak ditemukan.'], 401);
         }
 
         try {
-            PresensiMahasiswa::create([
-                'mahasiswa_id' => $mahasiswa->id,
-                'pengampu_mata_kuliah_id' => $pengampuMataKuliahId,
-                'tanggal' => $tanggalPresensi,
-                'waktu_presensi' => Carbon::now()->toTimeString(),
-                'status_kehadiran' => $request->status_kehadiran,
+            $validatedData = $request->validate([
+                'pengampu_mata_kuliah_id' => 'required|exists:pengampu_mata_kuliah,id', 
+                'status_kehadiran' => 'required|string|in:Hadir,Tidak Hadir',
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Presensi berhasil dicatat!', 'status_kehadiran' => $request->status_kehadiran]);
+            $pengampuMataKuliahId = $validatedData['pengampu_mata_kuliah_id'];
+            $statusKehadiranInput = $validatedData['status_kehadiran']; 
+            $tanggalPresensi = Carbon::today()->toDateString();
+
+            $jadwal = PengampuMataKuliah::where('id', $pengampuMataKuliahId)
+                                        ->where('kelas', $mahasiswa->kelas)
+                                        ->where('hari', Carbon::now()->locale('id')->isoFormat('dddd'))
+                                        ->first();
+            if (!$jadwal) {
+                return response()->json(['success' => false, 'message' => 'Jadwal tidak valid atau sudah lewat untuk Anda.'], 403);
+            }
+            
+            $statusKehadiranDB = $statusKehadiranInput; 
+
+
+            PresensiMahasiswa::updateOrCreate(
+                [
+                    'mahasiswa_id' => $mahasiswa->id,
+                    'pengampu_mata_kuliah_id' => $pengampuMataKuliahId,
+                    'tanggal' => $tanggalPresensi,
+                ],
+                [
+                    'waktu_presensi' => Carbon::now()->toTimeString(),
+                    'status_kehadiran' => $statusKehadiranDB, 
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Presensi berhasil dicatat sebagai: ' . $statusKehadiranInput, 
+                'status_kehadiran_display' => $statusKehadiranInput, 
+                'pengampu_mata_kuliah_id' => $pengampuMataKuliahId
+            ]);
+
+        } catch (ValidationException $e) {
+            Log::error('Validation Error for Mahasiswa Presensi (Toggle): ' . $e->getMessage(), ['errors' => $e->errors()]);
+            $errorMessages = [];
+            foreach($e->errors() as $field => $messages) {
+                $errorMessages[] = $messages[0];
+            }
+            return response()->json(['success' => false, 'message' => implode(' ', $errorMessages), 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            \Log::error('Error submitting presensi: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat mencatat presensi. Silakan coba lagi.'], 500);
+            Log::error('Error submitting presensi for Mahasiswa (Toggle): ' . $e->getMessage() . ' Line: ' . $e->getLine() . ' File: ' . $e->getFile());
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan internal server. Silakan coba lagi nanti.'], 500);
         }
     }
-   public function showChangePasswordForm()
+
+    // --- Metode Baru untuk Edit Detail Pribadi ---
+    /**
+     * Show the form for editing the student's personal details.
+     */
+    public function editDetailPribadi()
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+        if (!$mahasiswa) {
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Data mahasiswa tidak ditemukan.');
+        }
+        $mahasiswa->load('user'); // Eager load user untuk akses email dan nama jika di tabel user
+        return view('mahasiswa.edit_detail_pribadi', compact('mahasiswa'));
+    }
+
+    /**
+     * Update the student's personal details in storage.
+     */
+    public function updateDetailPribadi(Request $request)
+    {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+
+        if (!$mahasiswa) {
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Data mahasiswa tidak ditemukan.');
+        }
+
+        $validatedData = $request->validate([
+            'nama' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id), // Pastikan email unik, kecuali untuk user ini sendiri
+            ],
+            'telepon' => 'nullable|string|max:20',
+            'tanggal_lahir' => 'nullable|date|before_or_equal:today',
+            'alamat' => 'nullable|string|max:500',
+        ], [
+            'nama.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh pengguna lain.',
+            'tanggal_lahir.date' => 'Format tanggal lahir tidak valid.',
+            'tanggal_lahir.before_or_equal' => 'Tanggal lahir tidak boleh melebihi hari ini.'
+        ]);
+
+        try {
+            // Update data di tabel users (jika nama dan email ada di sana)
+            $user->name = $validatedData['nama']; // Asumsi 'name' di tabel users adalah nama lengkap
+            $user->email = $validatedData['email'];
+            $user->save();
+
+            // Update data di tabel mahasiswas
+            $mahasiswa->telepon = $validatedData['telepon'];
+            $mahasiswa->tanggal_lahir = $validatedData['tanggal_lahir'];
+            $mahasiswa->alamat = $validatedData['alamat'];
+            // Jika 'nama' juga ada di tabel mahasiswas dan berbeda dari users.name
+            // $mahasiswa->nama = $validatedData['nama']; 
+            $mahasiswa->save();
+
+            return redirect()->route('mahasiswa.profil.detail')->with('success', 'Detail pribadi berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            Log::error('Error updating mahasiswa profile: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan saat memperbarui profil. Silakan coba lagi.');
+        }
+    }
+    // --- Akhir Metode Baru ---
+
+
+    public function showChangePasswordForm()
     {
         return view('mahasiswa.settings.change_password');
     }
@@ -315,7 +427,7 @@ class MahasiswaController extends Controller
         ]);
 
         $user = Auth::user();
-        $user->password = Hash::make($request->new_password);
+        $user->password = Hash::make($request->new_password); // Menggunakan Hash::make()
         $user->save();
 
         return redirect()->back()->with('success', 'Password berhasil diubah!');
