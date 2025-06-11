@@ -19,7 +19,7 @@
  "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
-    "APP_KEY": "base64:YuALU0X8nC4L1q9RbwQEJdKEQAUut8woK5r1gIIpVCE=",
+    "APP_KEY": "base64:nvl/N2/ZxYYbauVo/Skdna1SrUDYZdirHldDIwMKiu0=",
     "DB_CONNECTION": "mysql",
     "DB_HOST": "127.0.0.1",
     "DB_PORT": "3306",
