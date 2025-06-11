@@ -24,40 +24,5 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password123'), // password
             'role' => 'admin',
         ]);
-
-        // 2. Create Dosen User and link to Dosen table
-        $dosenUser = User::create([
-            'name' => 'Dosen User',
-            'email' => 'dosen@gmail.com',
-            'password' => Hash::make('password123'), // password
-            'role' => 'dosen',
-        ]);
-        // Link Dosen User to a Dosen entry
-        Dosen::create([
-            'user_id' => $dosenUser->id, 
-            'nama' => 'Dosen User',
-            'email' => 'dosen@gmail.com',
-            'nidn' => '1234567890',
-            'prodi' => 'Teknik Informatika',
-        ]);
-
-        // 3. Create Mahasiswa User and link to Mahasiswa table
-        $mahasiswaUser = User::create([
-            'name' => 'Mahasiswa User',
-            'email' => 'mahasiswa@gmail.com',
-            'password' => Hash::make('password123'), // password
-            'role' => 'mahasiswa',
-        ]);
-        // Link Mahasiswa User to a Mahasiswa entry
-        Mahasiswa::create([
-            'user_id' => $mahasiswaUser->id, 
-            'nim' => '221011400961', 
-            'nama' => 'Adam Miftahul Falah',
-            'jurusan' => 'Teknik Informatika',
-            'angkatan' => '2022',
-            'email' => 'mahasiswa@gmail.com',
-            'telepon' => '081319310355',
-            'alamat' => 'Jl. Contoh Alamat No. 123',
-        ]);
     }
 }
