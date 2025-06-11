@@ -15,16 +15,5 @@
       "src": "/(.*)",
       "dest": "/public/index.php"
     }
-  ],
- "env": {
-    "APP_ENV": "production",
-    "APP_DEBUG": "false",
-    "APP_KEY": "base64:nvl/N2/ZxYYbauVo/Skdna1SrUDYZdirHldDIwMKiu0=",
-    "DB_CONNECTION": "mysql",
-    "DB_HOST": "127.0.0.1",
-    "DB_PORT": "3306",
-    "DB_DATABASE": "app_sistem_akademik",
-    "DB_USERNAME": "root",
-    "DB_PASSWORD": ""
-}
+  ]s
 }
