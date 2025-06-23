@@ -3,7 +3,6 @@
 Selamat datang di **App Sistem Akademik**! Solusi modern untuk digitalisasi dan optimalisasi manajemen akademik di institusi pendidikan Anda. Proyek ini bertujuan untuk menyederhanakan proses, meningkatkan kolaborasi, dan menyediakan informasi secara _real-time_ bagi semua _stakeholder_.
 
 [![Versi Proyek](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](URL_MENUJU_RELEASE_NOTES_JIKA_ADA)
-[![Lisensi](https://img.shields.io/github/license/adam-miftah/app-sistem-akademik?style=for-the-badge&color=brightgreen)](LICENSE_FILE_ANDA)
 [![Framework Digunakan](https://img.shields.io/badge/Framework-Laravel_vX.Y-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.1-777BB4?style=for-the-badge&logo=php)](https://www.php.net/)
 
