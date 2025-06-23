@@ -119,20 +119,5 @@ Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat 
 
 Punya pertanyaan, saran, atau ingin berdiskusi?
 
-Issues: Buka Isu Baru
-
 Email: [adammiftah196@gmail.com] 
 
-&lt;p align="center">Dibuat dengan ❤️ oleh &lt;a href="https://github.com/adam-miftah">Adam Miftah&lt;/a> dan para kontributor.
-&lt;/p>
-
-
-**Beberapa hal yang bisa Anda sesuaikan:**
-
-  * **URL Logo/Banner:** Ganti `URL_LOGO_PROYEK_ANDA_JIKA_ADA_ATAU_BANNER_KEREN` dengan link gambar yang relevan. Anda bisa buat banner menggunakan Canva atau tools sejenis.
-  * **Badge/Shields:** Sesuaikan versi, nama framework, versi PHP, dll. Anda bisa mencari lebih banyak badge keren di [shields.io](https://shields.io/).
-  * **Fitur Unggulan & Stack Teknologi:** Pastikan ini mencerminkan proyek Anda secara akurat.
-  * **Prasyarat & Langkah Instalasi:** Sesuaikan dengan kebutuhan spesifik proyek Anda (misalnya, jika ada langkah build frontend yang berbeda).
-  * **Roadmap:** Jika Anda punya rencana pengembangan ke depan, ini bisa jadi bagian yang menarik.
-  * **Lisensi:** Pastikan nama lisensi dan link ke file `LICENSE` (jika ada) sudah benar.
-  * **Kontak:** Tambahkan informasi kontak jika Anda bersedia.
