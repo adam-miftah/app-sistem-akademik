@@ -1,58 +1,49 @@
 @extends('layouts.app')
 
+@section('title', 'Tambah Presensi Dosen')
+
 @section('content')
-  <div class="container">
-    <h2>Tambah Absen Dosen Baru</h2>
-
-    @if ($errors->any())
-    <div class="alert alert-danger">
-    <ul>
-      @foreach ($errors->all() as $error)
-      <li>{{ $error }}</li>
-    @endforeach
-    </ul>
-    </div>
-    @endif
-
-    <form action="{{ route('admin.absenDosens.store') }}" method="POST">
+  <div class="container-fluid">
+    <h4 class="mb-4 fw-bold text-gradient"><i class="fas fa-plus-circle me-2"></i>Tambah Presensi Dosen</h4>
+    <form action="{{ route('admin.absenDosens.store') }}" method="POST" id="main-form">
     @csrf
-    <div class="form-group mb-3">
-      <label for="dosen_id">Dosen:</label>
-      <select name="dosen_id" id="dosen_id" class="form-control" required>
-      <option value="">-- Pilih Dosen --</option>
-      @foreach ($dosens as $dosen)
-      <option value="{{ $dosen->id }}" {{ old('dosen_id') == $dosen->id ? 'selected' : '' }}>{{ $dosen->nama }}</option>
-    @endforeach
-      </select>
-    </div>
-    <div class="form-group mb-3">
-      <label for="tanggal">Tanggal:</label>
-      <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ old('tanggal') }}" required>
-    </div>
-    <div class="form-group mb-3">
-      <label for="waktu_masuk">Waktu Masuk:</label>
-      <input type="time" name="waktu_masuk" id="waktu_masuk" class="form-control" value="{{ old('waktu_masuk') }}">
-    </div>
-    <div class="form-group mb-3">
-      <label for="waktu_keluar">Waktu Keluar:</label>
-      <input type="time" name="waktu_keluar" id="waktu_keluar" class="form-control" value="{{ old('waktu_keluar') }}">
-    </div>
-    <div class="form-group mb-3">
-      <label for="status">Status:</label>
-      <select name="status" id="status" class="form-control" required>
-      <option value="">-- Pilih Status --</option>
-      <option value="Hadir" {{ old('status') == 'Hadir' ? 'selected' : '' }}>Hadir</option>
-      <option value="Izin" {{ old('status') == 'Izin' ? 'selected' : '' }}>Izin</option>
-      <option value="Sakit" {{ old('status') == 'Sakit' ? 'selected' : '' }}>Sakit</option>
-      <option value="Alpha" {{ old('status') == 'Alpha' ? 'selected' : '' }}>Alpha</option>
-      </select>
-    </div>
-    <div class="form-group mb-3">
-      <label for="keterangan">Keterangan:</label>
-      <textarea name="keterangan" id="keterangan" class="form-control">{{ old('keterangan') }}</textarea>
-    </div>
-    <button type="submit" class="btn btn-success">Simpan</button>
-    <a href="{{ route('admin.absenDosens.index') }}" class="btn btn-secondary">Batal</a>
+    @include('admin.absen_dosen.form', ['absenDosen' => new App\Models\AbsenDosen])
     </form>
   </div>
 @endsection
+
+@push('styles')
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+  <style>
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent
+    }
+
+    .form-label.required::after {
+    content: " *";
+    color: var(--bs-danger)
+    }
+
+    .select2-container--bootstrap-5 .select2-selection {
+    border-radius: .375rem;
+    border: 1px solid #dee2e6;
+    height: 38px !important;
+    padding: .375rem .75rem
+    }
+  </style>
+@endpush
+
+@push('scripts')
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script>
+    $(document).ready(function () {
+    $('#dosen_id').select2({ theme: 'bootstrap-5' });
+    $('#main-form').on('submit', function (e) { e.preventDefault(); const t = $(this), s = $("#submit-button"); s.prop("disabled", !0).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...'); $(".form-control, .form-select").removeClass("is-invalid"), $.ajax({ url: t.attr("action"), type: "POST", data: t.serialize(), success: t => { Swal.fire({ title: "Berhasil!", text: t.success, icon: "success", timer: 2e3, showConfirmButton: !1 }).then(() => { window.location.href = "{{ route('admin.absenDosens.index') }}" }) }, error: t => { s.prop("disabled", !1).html('<i class="fas fa-save me-2"></i>Simpan'); 422 === t.status ? Swal.fire("Gagal Validasi", "Mohon periksa kembali data yang Anda masukkan.", "error") : Swal.fire("Error!", "Terjadi kesalahan di server.", "error") } }) })
+    });
+  </script>
+@endpush

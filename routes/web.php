@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\AnnouncementController; 
 use App\Http\Controllers\Admin\DosenController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AbsenDosenController as AdminAbsenDosenController;
@@ -32,6 +33,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // Route Admin
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
     Route::resource('dosens', DosenController::class);
     Route::resource('mataKuliahs', MataKuliahController::class);
     Route::resource('mahasiswas', AdminMahasiswaController::class);
@@ -41,12 +43,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('pengampuMataKuliah', PengampuMataKuliahController::class)->except(['show']); 
     Route::resource('nilaiMahasiswas', NilaiMahasiswaController::class)->except(['show']);
     Route::resource('absenDosens', AdminAbsenDosenController::class);
-    Route::get('kelola-presensi', [KelolaPresensiController::class, 'index'])->name('kelolaPresensi.index');
-    Route::get('kelola-presensi/{presensiMahasiswa}/edit', [KelolaPresensiController::class, 'edit'])->name('kelolaPresensi.edit');
-    Route::put('kelola-presensi/{presensiMahasiswa}', [KelolaPresensiController::class, 'update'])->name('kelolaPresensi.update');
-    Route::delete('kelola-presensi/{presensiMahasiswa}', [KelolaPresensiController::class, 'destroy'])->name('kelolaPresensi.destroy');
+    Route::resource('kelola-presensi', KelolaPresensiController::class)->names('kelolaPresensi');
     Route::get('/settings/change-password', [AdminController::class, 'showChangePasswordForm'])->name('changePasswordForm');
     Route::post('/settings/change-password', [AdminController::class, 'changePassword'])->name('changePassword');
+
+    Route::post('mahasiswas/import', [AdminMahasiswaController::class, 'import'])->name('mahasiswas.import');
+    Route::get('mahasiswas/import/template', [AdminMahasiswaController::class, 'downloadTemplate'])->name('mahasiswas.import.template');
 });
 
 // Route Dosen

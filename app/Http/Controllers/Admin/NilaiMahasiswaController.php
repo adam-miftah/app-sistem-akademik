@@ -7,39 +7,18 @@ use App\Models\NilaiMahasiswa;
 use App\Models\Mahasiswa;
 use App\Models\MataKuliah;
 use App\Models\Dosen;
-use App\Models\PresensiMahasiswa;
 use App\Models\PengampuMataKuliah;
+use App\Models\PresensiMahasiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
 
 class NilaiMahasiswaController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $filterMahasiswaNama = $request->input('mahasiswa_nama');
-        $filterMahasiswaNIM = $request->input('mahasiswa_nim');
-
-        $query = NilaiMahasiswa::query();
-
-        $query->with(['mahasiswa', 'mataKuliah', 'dosen']);
-
-        if (!empty($filterMahasiswaNama)) {
-            $query->whereHas('mahasiswa', function ($q) use ($filterMahasiswaNama) {
-                $q->where('nama', 'like', '%' . $filterMahasiswaNama . '%');
-            });
-        }
-
-        if (!empty($filterMahasiswaNIM)) {
-            $query->whereHas('mahasiswa', function ($q) use ($filterMahasiswaNIM) {
-                $q->where('nim', 'like', '%' . $filterMahasiswaNIM . '%');
-            });
-        }
-
-        $nilaiMahasiswas = $query->orderBy('mahasiswa_id') 
-                                 ->orderBy('mata_kuliah_id') 
-                                 ->get();
-
+        // Mengambil semua data untuk dikelola oleh DataTables di sisi klien
+        $nilaiMahasiswas = NilaiMahasiswa::with(['mahasiswa', 'mataKuliah', 'dosen'])->get();
         return view('admin.nilai_mahasiswa.index', compact('nilaiMahasiswas'));
     }
 
@@ -54,67 +33,14 @@ class NilaiMahasiswaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'mahasiswa_id' => 'required|exists:mahasiswas,id',
-            'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
-            'dosen_id' => 'nullable|exists:dosens,id',
-            'kelas' => [
-                'required',
-                'string',
-                'max:10',
-                Rule::unique('nilai_mahasiswas')->where(function ($query) use ($request) {
-                    return $query->where('mahasiswa_id', $request->mahasiswa_id)
-                                 ->where('mata_kuliah_id', $request->mata_kuliah_id);
-                })
-            ],
-            'nilai_tugas' => 'nullable|numeric|min:0|max:100',
-            'nilai_uts' => 'nullable|numeric|min:0|max:100',
-            'nilai_uas' => 'nullable|numeric|min:0|max:100',
-        ], [
-            'kelas.unique' => 'Nilai untuk mahasiswa ini pada mata kuliah dan kelas yang sama sudah ada.',
-            'nilai_tugas.numeric' => 'Nilai tugas harus berupa angka.',
-            'nilai_uts.numeric' => 'Nilai UTS harus berupa angka.',
-            'nilai_uas.numeric' => 'Nilai UAS harus berupa angka.',
-            'nilai_tugas.min' => 'Nilai tugas tidak boleh kurang dari 0.',
-            'nilai_tugas.max' => 'Nilai tugas tidak boleh lebih dari 100.',
-            'nilai_uts.min' => 'Nilai UTS tidak boleh kurang dari 0.',
-            'nilai_uts.max' => 'Nilai UTS tidak boleh lebih dari 100.',
-            'nilai_uas.min' => 'Nilai UAS tidak boleh kurang dari 0.',
-            'nilai_uas.max' => 'Nilai UAS tidak boleh lebih dari 100.',
-        ]);
+        $this->validateNilai($request);
 
-        $pengampuMataKuliah = PengampuMataKuliah::where('mata_kuliah_id', $request->mata_kuliah_id)
-                                                ->where('kelas', $request->kelas)
-                                                ->first();
+        DB::transaction(function () use ($request) {
+            $nilaiData = $this->calculateNilai($request);
+            NilaiMahasiswa::create($nilaiData);
+        });
 
-        $jumlahKehadiran = 0;
-        if ($pengampuMataKuliah) {
-            $jumlahKehadiran = PresensiMahasiswa::where('mahasiswa_id', $request->mahasiswa_id)
-                                                ->where('pengampu_mata_kuliah_id', $pengampuMataKuliah->id)
-                                                ->where('status_kehadiran', 'Hadir')
-                                                ->count();
-        } else {
-            \Log::warning('Pengampu Mata Kuliah tidak ditemukan untuk Mahasiswa ID: ' . $request->mahasiswa_id . ', Mata Kuliah ID: ' . $request->mata_kuliah_id . ', Kelas: ' . $request->kelas);
-        }
-
-        NilaiMahasiswa::create([
-            'mahasiswa_id' => $request->mahasiswa_id,
-            'mata_kuliah_id' => $request->mata_kuliah_id,
-            'dosen_id' => $request->dosen_id,
-            'kelas' => $request->kelas,
-            'kehadiran' => $jumlahKehadiran,
-            'nilai_tugas' => $request->nilai_tugas,
-            'nilai_uts' => $request->nilai_uts,
-            'nilai_uas' => $request->nilai_uas,
-            'nilai_huruf' => null,
-        ]);
-
-        return redirect()->route('admin.nilaiMahasiswas.index')->with('success', 'Nilai mahasiswa berhasil ditambahkan!');
-    }
-
-    public function show(NilaiMahasiswa $nilaiMahasiswa)
-    {
-        return redirect()->route('admin.nilaiMahasiswas.edit', $nilaiMahasiswa);
+        return response()->json(['success' => 'Nilai mahasiswa berhasil ditambahkan!']);
     }
 
     public function edit(NilaiMahasiswa $nilaiMahasiswa)
@@ -128,113 +54,84 @@ class NilaiMahasiswaController extends Controller
 
     public function update(Request $request, NilaiMahasiswa $nilaiMahasiswa)
     {
-        $request->validate([
-            'mahasiswa_id' => 'required|exists:mahasiswas,id',
-            'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
-            'dosen_id' => 'nullable|exists:dosens,id',
-            'kelas' => [
-                'required',
-                'string',
-                'max:10',
-                Rule::unique('nilai_mahasiswas')->where(function ($query) use ($request) {
-                    return $query->where('mahasiswa_id', $request->mahasiswa_id)
-                                 ->where('mata_kuliah_id', $request->mata_kuliah_id);
-                })->ignore($nilaiMahasiswa->id)
-            ],
-            'nilai_tugas' => 'nullable|numeric|min:0|max:100',
-            'nilai_uts' => 'nullable|numeric|min:0|max:100',
-            'nilai_uas' => 'nullable|numeric|min:0|max:100',
-        ], [
-            'kelas.unique' => 'Nilai untuk mahasiswa ini pada mata kuliah dan kelas yang sama sudah ada.',
-            'nilai_tugas.numeric' => 'Nilai tugas harus berupa angka.',
-            'nilai_uts.numeric' => 'Nilai UTS harus berupa angka.',
-            'nilai_uas.numeric' => 'Nilai UAS harus berupa angka.',
-            'nilai_tugas.min' => 'Nilai tugas tidak boleh kurang dari 0.',
-            'nilai_tugas.max' => 'Nilai tugas tidak boleh lebih dari 100.',
-            'nilai_uts.min' => 'Nilai UTS tidak boleh kurang dari 0.',
-            'nilai_uts.max' => 'Nilai UTS tidak boleh lebih dari 100.',
-            'nilai_uas.min' => 'Nilai UAS tidak boleh kurang dari 0.',
-            'nilai_uas.max' => 'Nilai UAS tidak boleh lebih dari 100.',
-        ]);
+        $this->validateNilai($request, $nilaiMahasiswa->id);
 
-        $pengampuMataKuliah = PengampuMataKuliah::where('mata_kuliah_id', $request->mata_kuliah_id)
-                                                ->where('kelas', $request->kelas)
-                                                ->first();
+        DB::transaction(function () use ($request, $nilaiMahasiswa) {
+            $nilaiData = $this->calculateNilai($request);
+            $nilaiMahasiswa->update($nilaiData);
+        });
 
-        $jumlahKehadiran = 0;
-        if ($pengampuMataKuliah) {
-            $jumlahKehadiran = PresensiMahasiswa::where('mahasiswa_id', $request->mahasiswa_id)
-                                                ->where('pengampu_mata_kuliah_id', $pengampuMataKuliah->id)
-                                                ->where('status_kehadiran', 'Hadir')
-                                                ->count();
-        } else {
-            \Log::warning('Pengampu Mata Kuliah tidak ditemukan untuk Mahasiswa ID: ' . $request->mahasiswa_id . ', Mata Kuliah ID: ' . $request->mata_kuliah_id . ', Kelas: ' . $request->kelas);
-        }
-
-        $nilaiMahasiswa->update([
-            'mahasiswa_id' => $request->mahasiswa_id,
-            'mata_kuliah_id' => $request->mata_kuliah_id,
-            'dosen_id' => $request->dosen_id,
-            'kelas' => $request->kelas,
-            'kehadiran' => $jumlahKehadiran,
-            'nilai_tugas' => $request->nilai_tugas,
-            'nilai_uts' => $request->nilai_uts,
-            'nilai_uas' => $request->nilai_uas,
-            'nilai_huruf' => null, 
-        ]);
-
-        return redirect()->route('admin.nilaiMahasiswas.index')->with('success', 'Nilai mahasiswa berhasil diperbarui!');
+        return response()->json(['success' => 'Nilai mahasiswa berhasil diperbarui!']);
     }
+
     public function destroy(NilaiMahasiswa $nilaiMahasiswa)
     {
         $nilaiMahasiswa->delete();
-
-        return redirect()->route('admin.nilaiMahasiswas.index')->with('success', 'Nilai mahasiswa berhasil dihapus!');
+        return response()->json(['success' => 'Data nilai berhasil dihapus.']);
     }
-
+    
+    // AJAX Helpers
     public function getMahasiswaKelas(Mahasiswa $mahasiswa)
     {
-        try {
-            Log::info('getMahasiswaKelas: Mahasiswa ID ' . $mahasiswa->id . ' ditemukan.');
-            Log::info('getMahasiswaKelas: Kelas mahasiswa: ' . ($mahasiswa->kelas ?? 'NULL'));
-            return response()->json(['kelas' => $mahasiswa->kelas]);
-        } catch (\Exception $e) {
-            Log::error('Error in getMahasiswaKelas for Mahasiswa ID ' . $mahasiswa->id . ': ' . $e->getMessage());
-            return response()->json(['error' => 'Gagal mengambil data kelas.'], 500);
-        }
+        return response()->json(['kelas' => $mahasiswa->kelas]);
     }
 
     public function getDosenPengampu(Request $request)
     {
-        $mataKuliahId = $request->query('mata_kuliah_id');
-        $kelas = $request->query('kelas');
+        $pengampu = PengampuMataKuliah::where('mata_kuliah_id', $request->mata_kuliah_id)
+                                      ->where('kelas', $request->kelas)
+                                      ->with('dosen')->first();
+        if ($pengampu && $pengampu->dosen) {
+            return response()->json([
+                'dosen_id' => $pengampu->dosen_id,
+                'dosen_nama' => $pengampu->dosen->nama
+            ]);
+        }
+        return response()->json(['dosen_id' => null]);
+    }
 
-        Log::info("getDosenPengampu: Mencari pengampu untuk Mata Kuliah ID: {$mataKuliahId}, Kelas: {$kelas}");
+    // Private helper methods
+    private function validateNilai(Request $request, $ignoreId = null)
+    {
+        $request->validate([
+            'mahasiswa_id' => 'required|exists:mahasiswas,id',
+            'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
+            'dosen_id' => 'nullable|exists:dosens,id',
+            'kelas' => ['required','string','max:10', Rule::unique('nilai_mahasiswas')->where(function ($query) use ($request) {
+                return $query->where('mahasiswa_id', $request->mahasiswa_id)->where('mata_kuliah_id', $request->mata_kuliah_id);
+            })->ignore($ignoreId)],
+            'nilai_tugas' => 'nullable|numeric|min:0|max:100',
+            'nilai_uts' => 'nullable|numeric|min:0|max:100',
+            'nilai_uas' => 'nullable|numeric|min:0|max:100',
+        ], ['kelas.unique' => 'Nilai untuk mahasiswa ini pada mata kuliah tersebut sudah ada.']);
+    }
 
-        if (!$mataKuliahId || !$kelas) {
-            Log::warning('getDosenPengampu: Mata Kuliah ID atau Kelas tidak lengkap.');
-            return response()->json(['dosen_id' => null, 'message' => 'Mata Kuliah ID dan Kelas diperlukan.'], 400);
+    private function calculateNilai(Request $request): array
+    {
+        $nilai_tugas = $request->nilai_tugas ?? 0;
+        $nilai_uts = $request->nilai_uts ?? 0;
+        $nilai_uas = $request->nilai_uas ?? 0;
+        
+        $pengampuMataKuliah = PengampuMataKuliah::where('mata_kuliah_id', $request->mata_kuliah_id)->where('kelas', $request->kelas)->first();
+        $jumlahKehadiran = 0;
+        if ($pengampuMataKuliah) {
+            $jumlahKehadiran = PresensiMahasiswa::where('mahasiswa_id', $request->mahasiswa_id)
+                ->where('pengampu_mata_kuliah_id', $pengampuMataKuliah->id)
+                ->where('status_kehadiran', 'Hadir')->count();
         }
 
-        try {
-            $pengampu = PengampuMataKuliah::where('mata_kuliah_id', $mataKuliahId)
-                                          ->where('kelas', $kelas)
-                                          ->with('dosen') 
-                                          ->first();
+        $nilai_angka = ($nilai_tugas * 0.3) + ($nilai_uts * 0.3) + ($nilai_uas * 0.4);
 
-            if ($pengampu && $pengampu->dosen) {
-                Log::info('getDosenPengampu: Dosen ditemukan: ' . $pengampu->dosen->nama . ' (ID: ' . $pengampu->dosen_id . ')');
-                return response()->json([
-                    'dosen_id' => $pengampu->dosen_id,
-                    'dosen_nama' => $pengampu->dosen->nama, 
-                ]);
-            } else {
-                Log::info('getDosenPengampu: Pengampu atau Dosen tidak ditemukan untuk Mata Kuliah ID: ' . $mataKuliahId . ', Kelas: ' . $kelas);
-                return response()->json(['dosen_id' => null, 'message' => 'Dosen pengampu tidak ditemukan.']);
-            }
-        } catch (\Exception $e) {
-            Log::error('Error in getDosenPengampu for Mata Kuliah ID: ' . $mataKuliahId . ', Kelas: ' . $kelas . ': ' . $e->getMessage());
-            return response()->json(['error' => 'Gagal mengambil data dosen pengampu.'], 500);
-        }
+        if ($nilai_angka >= 80) $nilai_huruf = 'A';
+        elseif ($nilai_angka >= 70) $nilai_huruf = 'B';
+        elseif ($nilai_angka >= 60) $nilai_huruf = 'C';
+        elseif ($nilai_angka >= 50) $nilai_huruf = 'D';
+        else $nilai_huruf = 'E';
+
+        return array_merge($request->all(), [
+            'kehadiran' => $jumlahKehadiran,
+            'nilai_angka' => round($nilai_angka, 2),
+            'nilai_huruf' => $nilai_huruf,
+        ]);
     }
 }

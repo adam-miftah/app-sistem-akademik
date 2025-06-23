@@ -16,6 +16,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
+
+    @stack('styles')
     <style>
         :root {
             --primary-color: #4361ee;
@@ -462,7 +465,6 @@
             }
         }
     </style>
-    @stack('styles')
 </head>
 
 <body>
@@ -489,12 +491,12 @@
 
             @auth
                 <div class="user-info">
-                    <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                    </div>
                     <div class="user-details">
                         <span class="user-name">{{ Auth::user()->profile_name ?? Auth::user()->name }}</span>
-                        <span class="user-role">{{ ucfirst(Auth::user()->role) }}</span>
+                        <span class="user-role text-end">{{ ucfirst(Auth::user()->role) }}</span>
+                    </div>
+                    <div class="user-avatar">
+                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
                     </div>
                 </div>
             @endauth
@@ -512,6 +514,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -583,6 +590,22 @@
                 if (!sidebarToggle) console.error('Sidebar toggle button not found');
                 if (!sidebar) console.error('Sidebar element not found');
             }
+            $(document).ajaxError(function (event, jqxhr, settings, thrownError) {
+                let message = 'Terjadi kesalahan di server. Silakan coba lagi.';
+                if (jqxhr.status === 419) {
+                    message = 'Sesi Anda telah berakhir. Halaman akan dimuat ulang.';
+                } else if (jqxhr.responseJSON && jqxhr.responseJSON.message) {
+                    message = jqxhr.responseJSON.message;
+                }
+
+                Swal.fire({
+                    title: `Error ${jqxhr.status}`,
+                    text: message,
+                    icon: 'error'
+                }).then(() => {
+                    if (jqxhr.status === 419) window.location.reload();
+                });
+            });
         });
     </script>
     @stack('scripts')

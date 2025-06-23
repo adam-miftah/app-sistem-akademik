@@ -1,379 +1,264 @@
 @extends('layouts.app')
 
-@section('title', 'Kelola Data Mahasiswa - Admin')
-@section('header_title', 'Kelola Data Mahasiswa')
+@section('title', 'Kelola Data Mahasiswa')
 
 @section('content')
-  <style>
-    /* Notifikasi Sukses */
-    .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #28a745;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    }
-
-    /* Page Header */
-    .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-    }
-
-    .page-title {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    font-weight: 600;
-    }
-
-    /* Tombol */
-    .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    }
-
-    .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    }
-
-    .btn-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2);
-    }
-
-    .btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    }
-
-    .btn-secondary:hover {
-    background-color: #5a6268;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
-    }
-
-    .btn-warning {
-    color: var(--text-color);
-    }
-
-    .btn-warning:hover {
-    transform: translateY(-2px);
-    }
-
-    .btn-danger {
-    background-color: var(--danger-color);
-    color: white;
-    }
-
-    .btn-danger:hover {
-    background-color: #e3174a;
-    transform: translateY(-2px);
-    }
-
-    /* Tabel Data */
-    .data-table-container {
-    overflow-x: auto;
-    background: var(--white-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    margin-bottom: 2rem;
-    }
-
-    .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 1200px;
-    /* Increased min-width to accommodate new columns */
-    }
-
-    .data-table thead {
-    background-color: var(--primary-color);
-    color: white;
-    }
-
-    .data-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 500;
-    }
-
-    .data-table td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    }
-
-    .data-table tr:last-child td {
-    border-bottom: none;
-    }
-
-    .data-table tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    /* Tombol Aksi */
-    .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    }
-
-    /* Tampilan Kosong */
-    .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-light);
-    }
-
-    .empty-state i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: var(--text-light);
-    }
-
-    /* Responsif untuk Tablet */
-    @media (max-width: 1200px) {
-
-    .data-table th:nth-child(7),
-    /* Telepon */
-    .data-table td:nth-child(7),
-    .data-table th:nth-child(8),
-    /* Program Studi */
-    .data-table td:nth-child(8),
-    .data-table th:nth-child(9),
-    /* Prog. Perkuliahan */
-    .data-table td:nth-child(9) {
-      display: none;
-    }
-    }
-
-    /* Responsif untuk Mobile */
-    @media (max-width: 768px) {
-    .page-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .action-buttons {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .btn {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .data-table th,
-    .data-table td {
-      padding: 0.75rem;
-    }
-
-    /* Hide more columns for very small screens */
-    .data-table th:nth-child(1),
-    /* ID */
-    .data-table td:nth-child(1),
-    .data-table th:nth-child(6),
-    /* Email */
-    .data-table td:nth-child(6),
-    .data-table th:nth-child(10),
-    /* Kelas */
-    .data-table td:nth-child(10) {
-      display: none;
-    }
-    }
-
-    @media (max-width: 576px) {
-    .btn-text {
-      display: none;
-    }
-
-    .btn i {
-      margin: 0;
-    }
-    }
-
-    /* Filter Form Styles */
-    .filter-form {
-    background: var(--white-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: flex-end;
-    /* Ensures filter buttons align with inputs */
-    }
-
-    .filter-group {
-    flex: 1;
-    min-width: 160px;
-    /* Adjusted min-width for more filters */
-    }
-
-    .filter-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-color);
-    }
-
-    .filter-group input[type="text"],
-    .filter-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: var(--text-color);
-    background-color: var(--white-bg);
-    box-sizing: border-box;
-    /* Ensures padding doesn't add to total width */
-    }
-
-    .filter-buttons {
-    display: flex;
-    gap: 0.75rem;
-    }
-
-    /* Responsive adjustments for filter form */
-    @media (max-width: 992px) {
-
-    /* Adjust breakpoint for filter form */
-    .filter-form {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .filter-group {
-      min-width: 100%;
-    }
-
-    .filter-buttons {
-      flex-direction: column;
-    }
-    }
-  </style>
-
-  <div class="content-area">
+  <div class="container-fluid">
+    {{-- Notifikasi untuk hasil import --}}
     @if (session('success'))
-    <div class="alert-success">
-    <i class="fas fa-check-circle"></i>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
     {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+    @if ($errors->has('import_error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <h4 class="alert-heading">Impor Gagal!</h4>
+    <pre class="mb-0">{{ $errors->first('import_error') }}</pre>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
 
-    {{-- Filter Form --}}
-    <form action="{{ route('admin.mahasiswas.index') }}" method="GET" class="filter-form">
-    <div class="filter-group">
-      <label for="mahasiswa_nim">NIM Mahasiswa</label>
-      <input type="text" id="mahasiswa_nim" name="mahasiswa_nim" value="{{ request('mahasiswa_nim') }}"
-      placeholder="Cari NIM mahasiswa...">
-    </div>
-    <div class="filter-group">
-      <label for="mahasiswa_nama">Nama Mahasiswa</label>
-      <input type="text" id="mahasiswa_nama" name="mahasiswa_nama" value="{{ request('mahasiswa_nama') }}"
-      placeholder="Cari nama mahasiswa...">
-    </div>
-    <div class="filter-buttons">
-      <button type="submit" class="btn btn-primary">
-      <i class="fas fa-filter"></i> <span class="btn-text">Filter</span>
-      </button>
-      <a href="{{ route('admin.mahasiswas.index') }}" class="btn btn-secondary">
-      <i class="fas fa-sync-alt"></i> <span class="btn-text">Reset</span>
-      </a>
-    </div>
-    </form>
-
-    <div class="page-header">
-    <h3 class="page-title">Daftar Mahasiswa</h3>
-    <a href="{{ route('admin.mahasiswas.create') }}" class="btn btn-primary">
-      <i class="fas fa-plus"></i>
-      <span class="btn-text">Tambah Mahasiswa</span>
-    </a>
-    </div>
-
-    <div class="data-table-container">
-    <table class="data-table">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>NIM</th>
-        <th>Nama</th>
-        <th>Angkatan</th>
-        <th>Tanggal Lahir</th>
-        <th>Program Studi</th>
-        <th>Prog. Perkuliahan</th>
-        <th>Kelas</th>
-        <th>Status</th>
-        <th>Email</th>
-        <th>Telepon</th>
-        <th>Aksi</th>
-      </tr>
-      </thead>
-      <tbody>
-      @forelse ($mahasiswas as $mhs)
-      <tr>
-      <td>{{ $loop->iteration }}</td>
-      <td>{{ $mhs->nim }}</td>
-      <td>{{ $mhs->nama }}</td>
-      <td>{{ $mhs->angkatan }}</td>
-      <td>{{ $mhs->tanggal_lahir ? \Carbon\Carbon::parse($mhs->tanggal_lahir)->format('d-m-Y') : '-' }}</td>
-      <td>{{ $mhs->program_studi ?? '-' }}</td>
-      <td>{{ $mhs->prog_perkuliahan ?? '-' }}</td>
-      <td>{{ $mhs->kelas ?? '-' }}</td>
-      <td>{{ $mhs->status_mahasiswa ?? '-' }}</td>
-      <td>{{ $mhs->email }}</td>
-      <td>{{ $mhs->telepon ?? '-' }}</td>
-      <td>
-      <div class="action-buttons">
-        <a href="{{ route('admin.mahasiswas.edit', $mhs->id) }}" class="btn btn-warning">
-        <i class="fas fa-edit"></i>
-        <span class="btn-text">Edit</span>
-        </a>
-        <form action="{{ route('admin.mahasiswas.destroy', $mhs->id) }}" method="POST"
-        style="display:inline-block;">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-danger"
-        onclick="return confirm('Apakah Anda yakin ingin menghapus data mahasiswa ini?')">
-        <i class="fas fa-trash-alt"></i>
-        <span class="btn-text">Hapus</span>
-        </button>
-        </form>
+    <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3">
+      <h4 class="mb-3 fw-bold text-gradient">
+      <i class="fas fa-user-graduate me-2"></i>Data Mahasiswa
+      </h4>
+      <hr>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="input-group input-group-sm" style="max-width: 350px;">
+        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" id="custom-search-input" class="form-control border-start-0"
+        placeholder="Cari nama, NIM, atau email...">
       </div>
-      </td>
-      </tr>
-    @empty
+      <div class="d-flex gap-2">
+        {{-- Tombol Import --}}
+        {{-- <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+        data-bs-target="#importModal">
+        <i class="fas fa-file-excel me-1"></i> Import Excel
+        </button> --}}
+        <a href="{{ route('admin.mahasiswas.create') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus-circle me-1"></i> Tambah Mahasiswa
+        </a>
+      </div>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 @if($mahasiswas->isEmpty()) is-empty @endif"
+        id="mahasiswas-table" style="width:100%">
+        <thead class="table-light">
+        <tr>
+          <th class="text-center" width="5%">No.</th>
+          <th>Nama Mahasiswa</th>
+          <th>NIM</th>
+          <th>Jurusan</th>
+          <th>Angkatan</th>
+          <th class="text-center">Kelas</th>
+          <th class="text-center">Status</th>
+          <th class="text-center" width="15%">Aksi</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse ($mahasiswas as $mahasiswa)
       <tr>
-      <td colspan="12" class="empty-state"> {{-- Adjusted colspan --}}
-      <i class="fas fa-user-graduate"></i>
-      <p>Tidak ada data mahasiswa</p>
-      </td>
+        <td class="text-center">{{ $loop->iteration }}</td>
+        <td data-label="Mahasiswa">
+        <div class="d-flex align-items-center">
+        <div class="avatar-sm me-3">{{ strtoupper(substr($mahasiswa->nama, 0, 1)) }}</div>
+        <div>
+        <span class="fw-semibold d-block">{{ $mahasiswa->nama }}</span>
+        <small class="text-muted">{{ $mahasiswa->email }}</small>
+        </div>
+        </div>
+        </td>
+        <td data-label="NIM">{{ $mahasiswa->nim }}</td>
+        <td data-label="Jurusan">{{ $mahasiswa->jurusan }}</td>
+        <td data-label="Angkatan">{{ $mahasiswa->angkatan }}</td>
+        <td data-label="Kelas" class="text-center">{{ $mahasiswa->kelas ?? '-' }}</td>
+        <td data-label="Status" class="text-center">
+        <span class="badge bg-success-subtle text-success-emphasis">{{ $mahasiswa->status_mahasiswa }}</span>
+        </td>
+        <td data-label="Aksi" class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+        <a href="{{ route('admin.mahasiswas.edit', $mahasiswa->id) }}" class="btn btn-sm btn-outline-warning"
+        data-bs-toggle="tooltip" title="Edit"><i class="fas fa-edit"></i></a>
+        <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+        data-url="{{ route('admin.mahasiswas.destroy', $mahasiswa->id) }}"
+        data-name="{{ $mahasiswa->nama }}" data-bs-toggle="tooltip" title="Hapus"><i
+          class="fas fa-trash-alt"></i></button>
+        </div>
+        </td>
       </tr>
-    @endforelse
-      </tbody>
-    </table>
+      @empty
+      <tr>
+        <td colspan="8" class="text-center py-5 text-muted">
+        <i class="fas fa-folder-open fa-3x mb-3"></i>
+        <p class="mb-0">Belum ada data mahasiswa.</p>
+        </td>
+      </tr>
+      @endforelse
+        </tbody>
+      </table>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+      <h5 class="modal-title" id="importModalLabel">Import Data Mahasiswa</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('admin.mahasiswas.import') }}" method="POST" enctype="multipart/form-data">
+      @csrf
+      <div class="modal-body">
+        <div class="alert alert-info">
+        Silakan unduh template di bawah ini untuk memastikan format data sesuai. Pastikan header dan urutan kolom
+        tidak diubah.
+        </div>
+        <a href="{{ route('admin.mahasiswas.import.template') }}" class="btn btn-sm btn-outline-success mb-3">
+        <i class="fas fa-file-download me-1"></i> Unduh Template Excel
+        </a>
+        <div class="mb-3">
+        <label for="file" class="form-label">Pilih File Excel</label>
+        <input class="form-control" type="file" id="file" name="file" required accept=".xlsx, .xls, .csv">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">
+        <i class="fas fa-upload me-1"></i> Import Data
+        </button>
+      </div>
+      </form>
+    </div>
     </div>
   </div>
 @endsection
+
+@push('styles')
+  {{-- Kode CSS Anda yang sudah ada --}}
+  <style>
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    }
+
+    .table th {
+    font-weight: 600;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    }
+
+    .table td {
+    vertical-align: middle;
+    font-size: .875rem;
+    }
+
+    .avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    }
+
+    @media (max-width: 991.98px) {
+    .table thead {
+      display: none;
+    }
+
+    .table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid #dee2e6;
+      border-radius: .5rem;
+    }
+
+    .table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      padding: .75rem 1rem;
+    }
+
+    .table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #6c757d;
+      margin-right: 1rem;
+    }
+
+    .table td:last-child {
+      border-bottom: 0;
+    }
+    }
+
+    /* Style untuk pesan error import */
+    .alert pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: .875em;
+    color: inherit;
+    }
+  </style>
+@endpush
+
+@push('scripts')
+  {{-- Kode Javascript Anda yang sudah ada --}}
+  <script>
+    $(document).ready(function () {
+    var table = $('#mahasiswas-table:not(.is-empty)').DataTable({
+      dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+      paging: false,
+      lengthChange: false,
+      searching: true,
+      ordering: true,
+      info: false,
+      order: [[1, 'asc']],
+      language: { search: "", zeroRecords: "Data tidak ditemukan.", info: "Menampilkan _START_ - _END_ dari _TOTAL_ mahasiswa", infoEmpty: "Menampilkan 0 mahasiswa", paginate: { next: "›", previous: "‹" } },
+      columnDefs: [
+      { searchable: false, orderable: false, targets: 0, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+      { orderable: false, searchable: false, targets: 7 }
+      ],
+      drawCallback: () => $('[data-bs-toggle="tooltip"]').each(function () { new bootstrap.Tooltip(this) })
+    });
+    $('#custom-search-input').on('keyup', function () { table.search(this.value).draw(); });
+
+    $(document).on('click', '.delete-btn', function (e) {
+      e.preventDefault();
+      const button = $(this);
+      const url = button.data('url');
+      const name = button.data('name');
+
+      Swal.fire({
+      title: 'Anda Yakin?', html: `Data untuk <b>${name}</b> dan akun login terkait akan dihapus.`, icon: 'warning',
+      showCancelButton: true, confirmButtonColor: '#d33', cancelButtonText: 'Batal', confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+        url: url, type: 'POST', data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+        success: function (response) {
+          table.row(button.closest('tr')).remove().draw(false);
+          Swal.fire('Berhasil!', response.success, 'success');
+        },
+        error: (xhr) => Swal.fire('Gagal!', (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Terjadi kesalahan.', 'error')
+        });
+      }
+      });
+    });
+    });
+  </script>
+@endpush

@@ -1,173 +1,116 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Dosen - Admin')
+@section('title', 'Edit Dosen')
 @section('header_title', 'Edit Dosen')
 
 @section('content')
-  <style>
-    /* Reuse the same styles from the create form */
-    .form-container {
-    background: var(--white-bg);
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    }
-
-    /* .form-title {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    font-weight: 600;
-    } */
-
-    .card-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.5rem;
-    border-radius: 10px 10px 0 0 !important;
-    }
-
-    .card-title {
-    margin: 0;
-    font-size: 1.25rem;
-    }
-
-    .alert-error {
-    background-color: #fce8e8;
-    color: #cc0000;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #dc3545;
-    }
-
-    .form-group {
-    margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text-color);
-    font-weight: 500;
-    }
-
-    .form-control {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    transition: var(--transition);
-    }
-
-    .form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-    }
-
-    .form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    }
-
-    .input-group {
-    position: relative;
-    }
-
-    .input-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-light);
-    }
-
-    .input-group .form-control {
-    padding-left: 2.5rem;
-    }
-
-    @media (max-width: 768px) {
-    .form-container {
-      padding: 1.5rem;
-    }
-
-    .form-actions {
-      flex-direction: column;
-    }
-
-    .btn {
-      width: 100%;
-    }
-    }
-  </style>
-
-  <div class="content-area">
-    <div class="form-container">
-    <div class="card-header">
-      <h4 class="card-title">Form Edit Dosen: {{ $dosen->nama }}</h4>
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-gradient"><i class="fas fa-edit me-2"></i>Edit Data Dosen</h4>
     </div>
 
-
-    @if ($errors->any())
-    <div class="alert-error">
-      <i class="fas fa-exclamation-circle"></i>
-      <ul style="margin: 0.5rem 0 0 1rem;">
-      @foreach ($errors->all() as $error)
-      <li>{{ $error }}</li>
-    @endforeach
-      </ul>
+    <form action="{{ route('admin.dosens.update', $dosen->id) }}" method="POST" id="edit-dosen-form">
+    @csrf
+    @method('PUT')
+    <div class="row g-4">
+      <div class="col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white p-3">
+        <h5 class="mb-0 fw-semibold"><i class="fas fa-id-card me-2 text-primary"></i>Profil Dosen</h5>
+        </div>
+        <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-12"><label for="nama" class="form-label required">Nama Lengkap & Gelar</label><input
+            type="text" class="form-control" id="nama" name="nama" value="{{ old('nama', $dosen->nama) }}"
+            required></div>
+          <div class="col-md-6"><label for="nidn" class="form-label">NIDN</label><input type="text"
+            class="form-control" id="nidn" name="nidn" value="{{ old('nidn', $dosen->nidn) }}"></div>
+          <div class="col-md-6"><label for="prodi" class="form-label">Program Studi</label><input type="text"
+            class="form-control" id="prodi" name="prodi" value="{{ old('prodi', $dosen->prodi) }}"></div>
+        </div>
+        </div>
+      </div>
+      <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-white p-3">
+        <h5 class="mb-0 fw-semibold"><i class="fas fa-user-lock me-2 text-primary"></i>Akun Login Dosen</h5>
+        </div>
+        <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-12"><label for="email" class="form-label required">Email</label><input type="email"
+            class="form-control" id="email" name="email" value="{{ old('email', $dosen->email) }}" required></div>
+          <div class="col-md-6"><label for="password" class="form-label">Password Baru</label><input type="password"
+            class="form-control" id="password" name="password"><small class="text-muted">Kosongkan jika tidak
+            diubah.</small></div>
+          <div class="col-md-6"><label for="password_confirmation" class="form-label">Konfirmasi Password
+            Baru</label><input type="password" class="form-control" id="password_confirmation"
+            name="password_confirmation"></div>
+        </div>
+        </div>
+      </div>
+      </div>
+      <div class="col-lg-4">
+      <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+        <div class="card-header bg-white p-3">
+        <h5 class="mb-0 fw-semibold"><i class="fas fa-cog me-2 text-primary"></i>Aksi</h5>
+        </div>
+        <div class="card-body">
+        <p class="text-muted">Pastikan semua data yang ditandai * telah terisi dengan benar.</p>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary" id="submit-button"><i class="fas fa-save me-2"></i>Simpan
+          Perubahan</button>
+          <a href="{{ route('admin.dosens.index') }}" class="btn btn-secondary">Batal</a>
+        </div>
+        </div>
+      </div>
+      </div>
     </div>
-    @endif
-
-    <form action="{{ route('admin.dosens.update', $dosen->id) }}" method="POST">
-      @csrf
-      @method('PUT')
-      <div class="form-group">
-      <label for="nama">Nama Dosen</label>
-      <div class="input-group">
-        <i class="fas fa-user input-icon"></i>
-        <input type="text" id="nama" name="nama" value="{{ old('nama', $dosen->nama) }}" class="form-control"
-        placeholder="Masukkan nama dosen" required>
-      </div>
-      </div>
-      <div class="form-group">
-      <label for="email">Email Dosen</label>
-      <div class="input-group">
-        <i class="fas fa-envelope input-icon"></i>
-        <input type="email" id="email" name="email" value="{{ old('email', $dosen->email) }}" class="form-control"
-        placeholder="Masukkan email dosen" required>
-      </div>
-      </div>
-      <div class="form-group">
-      <label for="nidn">NIDN (opsional)</label>
-      <div class="input-group">
-        <i class="fas fa-id-card input-icon"></i>
-        <input type="text" id="nidn" name="nidn" value="{{ old('nidn', $dosen->nidn) }}" class="form-control"
-        placeholder="Masukkan NIDN dosen">
-      </div>
-      </div>
-      <div class="form-group">
-      <label for="prodi">Program Studi (opsional)</label>
-      <div class="input-group">
-        <i class="fas fa-graduation-cap input-icon"></i>
-        <input type="text" id="prodi" name="prodi" value="{{ old('prodi', $dosen->prodi) }}" class="form-control"
-        placeholder="Masukkan program studi dosen">
-      </div>
-      </div>
-      <div class="form-actions">
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-save"></i> Update Dosen
-      </button>
-      <a href="{{ route('admin.dosens.index') }}" class="btn btn-secondary">
-        <i class="fas fa-times"></i> Batal
-      </a>
-      </div>
     </form>
-    </div>
   </div>
 @endsection
+
+@push('styles')
+  <style>
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent
+    }
+
+    .form-label.required::after {
+    content: " *";
+    color: var(--bs-danger)
+    }
+  </style>
+@endpush
+
+@push('scripts')
+  <script>
+    $('#edit-dosen-form').on('submit', function (e) {
+    e.preventDefault();
+    const form = $(this);
+    const submitButton = $('#submit-button');
+
+    submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+    $('.form-control').removeClass('is-invalid');
+
+    $.ajax({
+      url: form.attr('action'), type: 'POST', data: form.serialize(),
+      success: function (response) {
+      Swal.fire({ title: 'Berhasil!', text: response.success, icon: 'success', timer: 2000, showConfirmButton: false })
+        .then(() => window.location.href = "{{ route('admin.dosens.index') }}");
+      },
+      error: function (xhr) {
+      submitButton.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Simpan Perubahan');
+      if (xhr.status === 422) {
+        const errors = xhr.responseJSON.errors;
+        $.each(errors, (key, value) => $(`#${key}`).addClass('is-invalid'));
+        Swal.fire('Gagal Validasi', 'Mohon periksa kembali data yang Anda masukkan.', 'error');
+      } else {
+        Swal.fire('Error!', 'Terjadi kesalahan di server.', 'error');
+      }
+      }
+    });
+    });
+  </script>
+@endpush

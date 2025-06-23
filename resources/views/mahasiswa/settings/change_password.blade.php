@@ -1,105 +1,113 @@
-{{-- resources/views/mahasiswa/settings/change_password.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Ubah Password Mahasiswa')
-@section('header_title', 'Ubah Password')
+@section('title', 'Ubah Password')
+@section('header_title', 'Pengaturan Akun')
 
 @section('content')
-  <div class="content-area">
-    @if (session('success'))
-    <div class="alert-success">
-    <i class="fas fa-check-circle"></i>
-    {{ session('success') }}
-    </div>
-    @endif
+  <div class="container-fluid ">
+    <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm border-0">
+      <div class="card-header bg-white p-3">
+        <h4 class="mb-0 fw-bold text-gradient">
+        <i class="fas fa-key me-2"></i>Ubah Password
+        </h4>
+      </div>
+      <div class="card-body p-4">
 
-    @if ($errors->any())
-    <div class="alert-danger">
-    <i class="fas fa-exclamation-circle"></i>
-    <ul>
-      @foreach ($errors->all() as $error)
+        {{-- Menampilkan Notifikasi Sukses --}}
+        @if (session('success'))
+      <div class="alert alert-success d-flex align-items-center gap-2">
+      <i class="fas fa-check-circle"></i>
+      <span>{{ session('success') }}</span>
+      </div>
+      @endif
+
+        {{-- Menampilkan Notifikasi Error Validasi --}}
+        @if ($errors->any())
+      <div class="alert alert-danger">
+      <div class="d-flex">
+        <i class="fas fa-exclamation-circle me-2 mt-1"></i>
+        <div>
+        <span class="fw-semibold">Terdapat kesalahan validasi:</span>
+        <ul class="mb-0 mt-1">
+        @foreach ($errors->all() as $error)
       <li>{{ $error }}</li>
-    @endforeach
-    </ul>
-    </div>
-    @endif
+      @endforeach
+        </ul>
+        </div>
+      </div>
+      </div>
+      @endif
 
-    <div class="page-header">
-    <h3 class="page-title">Ubah Password Akun Anda</h3>
+        <form action="{{ route('mahasiswa.change_password') }}" method="POST">
+        @csrf
+        {{-- PERBAIKAN: Menggunakan kelas Bootstrap untuk layout yang lebih baik --}}
+        <div class="mb-3">
+          <label for="new_password" class="form-label">Password Baru</label>
+          <input type="password" class="form-control" id="new_password" name="new_password" required
+          placeholder="Masukkan password baru...">
+        </div>
+        <div class="mb-3">
+          <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru</label>
+          <input type="password" class="form-control" id="new_password_confirmation"
+          name="new_password_confirmation" required placeholder="Ketik ulang password baru...">
+        </div>
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save me-2"></i>Simpan Perubahan
+          </button>
+        </div>
+        </form>
+      </div>
+      </div>
     </div>
-
-    <div class="form-container"
-    style="background: var(--white-bg); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-light);">
-    <form action="{{ route('mahasiswa.change_password') }}" method="POST">
-      @csrf
-      {{-- Hapus bagian ini:
-      <div class="mb-3">
-      <label for="current_password" class="form-label">Password Saat Ini:</label>
-      <input type="password" class="form-control" id="current_password" name="current_password" required>
-      </div>
-      --}}
-      <div class="mb-3">
-      <label for="new_password" class="form-label">Password Baru:</label>
-      <input type="password" class="form-control" id="new_password" name="new_password" required>
-      </div>
-      <div class="mb-3">
-      <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru:</label>
-      <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation"
-        required>
-      </div>
-      <button type="submit" class="btn btn-primary">Ubah Password</button>
-    </form>
     </div>
   </div>
 @endsection
 
-{{-- Anda mungkin perlu menambahkan gaya CSS untuk .form-control, .form-label, .mb-3, dll. di layouts/app.blade.php atau
-di sini --}}
-<style>
-  .page-title {
-    margin: 0;
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
-  }
+@push('styles')
+  <style>
+    /* Style ini akan menata tampilan form dan notifikasi agar lebih modern */
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    }
 
-  .form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: var(--text-color);
-    background-color: var(--white-bg);
-    box-sizing: border-box;
-    margin-bottom: 1rem;
-  }
+    .form-label {
+    font-weight: 600;
+    color: #495057;
+    }
 
-  .form-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-color);
-  }
+    .form-control {
+    border-radius: .5rem;
+    /* Sudut lebih melengkung */
+    padding: .75rem 1rem;
+    }
 
-  .mb-3 {
-    margin-bottom: 1.5rem;
-  }
+    .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(74, 99, 232, 0.25);
+    }
 
-  .alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #dc3545;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
+    .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    padding: .75rem 1.5rem;
+    font-weight: 600;
+    border-radius: .5rem;
+    }
 
-  .alert-danger ul {
-    margin: 0;
-    padding-left: 1.25rem;
-  }
-</style>
+    .btn-primary:hover {
+    background-color: #3A53D3;
+    border-color: #3A53D3;
+    }
+
+    .alert {
+    border-left-width: 5px;
+    border-radius: .5rem;
+    }
+  </style>
+@endpush

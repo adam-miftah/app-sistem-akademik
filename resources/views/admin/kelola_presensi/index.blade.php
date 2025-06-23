@@ -1,382 +1,208 @@
-{{-- File: resources/views/admin/kelola_presensi/index.blade.php --}}
-@extends('layouts.app') {{-- Sesuaikan dengan layout admin Anda --}}
+@extends('layouts.app')
 
 @section('title', 'Kelola Presensi Mahasiswa')
-@section('header_title', 'Kelola Presensi Mahasiswa')
 
 @section('content')
+  <div class="container-fluid">
+    <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3">
+      <h4 class="mb-3 fw-bold text-gradient">
+      <i class="fas fa-user-check me-2"></i>Kelola Presensi Mahasiswa
+      </h4>
+      <hr>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="input-group input-group-sm" style="max-width: 350px;">
+        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" id="custom-search-input" class="form-control border-start-0"
+        placeholder="Cari mahasiswa, mata kuliah, tanggal...">
+      </div>
+      <a href="{{ route('admin.kelolaPresensi.create') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus-circle me-1"></i> Tambah Presensi
+      </a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 @if($presensiRecords->isEmpty()) is-empty @endif"
+        id="presensi-table" style="width:100%">
+        <thead class="table-light">
+        <tr>
+          <th class="text-center" width="5%">No</th>
+          <th>Mahasiswa</th>
+          <th>Mata Kuliah</th>
+          <th>Tanggal</th>
+          <th class="text-center">Status</th>
+          <th class="text-center" width="10%">Aksi</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse ($presensiRecords as $record)
+        <tr>
+        <td class="text-center">{{ $loop->iteration }}</td>
+        <td data-label="Mahasiswa">
+        <span class="fw-semibold d-block">{{ $record->mahasiswa->nama ?? 'N/A' }}</span>
+        <small class="text-muted">{{ $record->mahasiswa->nim ?? '-' }}</small>
+        </td>
+        <td data-label="Mata Kuliah">
+        <span class="fw-semibold">{{ $record->pengampuMataKuliah->mataKuliah->nama_mk ?? 'N/A' }}</span>
+        <small class="d-block text-muted">{{ $record->pengampuMataKuliah->kelas ?? '-' }}</small>
+        </td>
+        <td data-label="Tanggal" data-order="{{ \Carbon\Carbon::parse($record->tanggal)->timestamp }}">
+        {{{ \Carbon\Carbon::parse($record->tanggal)->locale('id')->isoFormat('dddd, DD MMMM YYYY') }}}
+        </td>
+        <td data-label="Status" class="text-center">
+        {{-- PERUBAHAN: Logika Badge Status Disederhanakan --}}
+        @php
+        $isHadir = ($record->status_kehadiran == 'Hadir');
+        $statusClass = $isHadir ? 'success' : 'danger';
+        $statusText = $isHadir ? 'Hadir' : 'Tidak Hadir';
+        @endphp
+        <span
+          class="badge bg-{{$statusClass}}-subtle text-{{$statusClass}}-emphasis rounded-pill">{{ $statusText }}</span>
+        </td>
+        <td data-label="Aksi" class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+          <a href="{{ route('admin.kelolaPresensi.edit', $record->id) }}" class="btn btn-sm btn-outline-warning"
+          data-bs-toggle="tooltip" title="Edit Status"><i class="fas fa-edit"></i></a>
+          <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+          data-url="{{ route('admin.kelolaPresensi.destroy', $record->id) }}"
+          data-name="{{ $record->mahasiswa->nama }} - {{ \Carbon\Carbon::parse($record->tanggal)->isoFormat('DD MMM') }}"
+          data-bs-toggle="tooltip" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        </td>
+        </tr>
+      @empty
+      <tr>
+        <td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-folder-open fa-3x mb-3"></i>
+        <p class="mb-0">Belum ada data presensi.</p>
+        </td>
+      </tr>
+      @endforelse
+        </tbody>
+      </table>
+      </div>
+    </div>
+    </div>
+  </div>
+@endsection
+
+@push('styles')
   <style>
-    .filter-card {
-    background-color: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
     }
 
-    .filter-card h5 {
-    margin-bottom: 1rem;
+    .table th {
     font-weight: 600;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
     }
 
-    .form-select,
-    .form-control {
-    border-radius: 6px;
+    .table td {
+    vertical-align: middle;
+    font-size: .875rem;
     }
 
-    /* Styles for Action Buttons, adapted from your example */
-    .btn {
-    /* General button styling */
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    /* Adjusted for btn-sm consistency */
-    border-radius: 6px;
-    /* Consistent with other buttons */
-    font-weight: 500;
-    text-decoration: none;
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    /* Standard small button size */
-    }
-
-    .btn-warning.btn-sm {
-    /* Specific for Edit button */
-    background-color: #ffc107;
-    /* Bootstrap warning yellow */
-    color: #212529;
-    /* Dark text for yellow background */
-    }
-
-    .btn-warning.btn-sm:hover {
-    background-color: #e0a800;
-    transform: translateY(-1px);
-    /* Subtle hover effect */
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-danger.btn-sm {
-    /* Specific for Delete button */
-    background-color: #dc3545;
-    /* Bootstrap danger red */
-    color: white;
-    }
-
-    .btn-danger.btn-sm:hover {
-    background-color: #c82333;
-    transform: translateY(-1px);
-    /* Subtle hover effect */
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-actions {
-    /* Container for buttons in table cell */
-    display: flex;
-    gap: 0.5rem;
-    /* Space between buttons */
-    justify-content: center;
-    /* Center buttons if cell is text-center */
-    }
-
-    .table-actions form {
-    display: inline-block;
-    /* Keep form inline with other elements if not flexed directly */
-    }
-
-    /* End of Action Button Styles */
-
-    .badge-status-hadir {
-    background-color: #28a745;
-    color: white;
-    }
-
-    .badge-status-alpha {
-    background-color: #dc3545;
-    color: white;
-    }
-
-    .badge-status-izin {
-    background-color: #ffc107;
-    color: #212529;
-    }
-
-    .badge-status-sakit {
-    background-color: #17a2b8;
-    color: white;
-    }
-
-    .badge-status-tidak_hadir {
-    background-color: #6c757d;
-    color: white;
-    }
-
-
-    .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #28a745;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    }
-
-    .alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #dc3545;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    }
-
-    .data-table-container {
-    overflow-x: auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    margin-bottom: 2rem;
-    }
-
-    .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 1000px;
-    }
-
-    .data-table thead {
-    background-color: #4361ee;
-    color: white;
-    }
-
-    .data-table th,
-    .data-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #f0f0f0;
-    }
-
-    .data-table th {
-    font-weight: 500;
-    }
-
-    .data-table tr:last-child td {
-    border-bottom: none;
-    }
-
-    .data-table tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-    }
-
-    .empty-state i {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    color: #adb5bd;
-    }
-
-    .empty-state h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #374151;
-    }
-
-    /* Responsive: Hide text on very small screens for action buttons */
-    @media (max-width: 576px) {
-    .btn-text {
+    @media (max-width: 991.98px) {
+    .table thead {
       display: none;
     }
 
-    .btn i {
-      margin-right: 0 !important;
-      /* Remove margin if only icon is shown */
+    .table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid #dee2e6;
+      border-radius: .5rem;
     }
 
-    .table-actions {
-      flex-direction: column;
-      /* Stack buttons vertically on very small screens */
+    .table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      padding: .75rem 1rem;
+    }
+
+    .table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #6c757d;
+      margin-right: 1rem;
+    }
+
+    .table td:last-child {
+      border-bottom: 0;
     }
     }
   </style>
+@endpush
 
-  <div class="container-fluid">
-    @if(session('success'))
-    <div class="alert alert-success">
-    <i class="fas fa-check-circle"></i> {{ session('success') }}
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="alert alert-danger">
-    <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-    </div>
-    @endif
+@push('scripts')
+  <script>
+    $(document).ready(function () {
+    var table = $('#presensi-table:not(.is-empty)').DataTable({
+      dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+      paging: false,
+      lengthChange: false,
+      searching: true,
+      ordering: true,
+      info: false,
+      order: [[3, 'asc']],
+      language: {
+      search: "",
+      zeroRecords: "Data tidak ditemukan.",
+      info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ data",
+      infoEmpty: "Menampilkan 0 data",
+      paginate: { next: "›", previous: "‹" }
+      },
+      columnDefs: [
+      { searchable: false, orderable: false, targets: 0 },
+      { orderable: false, targets: 5 }
+      ],
+      drawCallback: () => $('[data-bs-toggle="tooltip"]').each(function () { new bootstrap.Tooltip(this) }),
+      "fnDrawCallback": function (oSettings) {
+      this.api().column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+        cell.innerHTML = i + 1;
+      });
+      }
+    });
 
-    <div class="card filter-card">
-    <div class="card-body">
-      <h5><i class="fas fa-filter me-2"></i>Filter Presensi</h5>
-      <form action="{{ route('admin.kelolaPresensi.index') }}" method="GET">
-      <div class="row g-3">
-        <div class="col-md-3">
-        <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
-        <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai"
-          value="{{ $request->tanggal_mulai }}">
-        </div>
-        <div class="col-md-3">
-        <label for="tanggal_selesai" class="form-label">Tanggal Selesai</label>
-        <input type="date" class="form-control" id="tanggal_selesai" name="tanggal_selesai"
-          value="{{ $request->tanggal_selesai }}">
-        </div>
-        <div class="col-md-3">
-        <label for="mata_kuliah_id" class="form-label">Mata Kuliah</label>
-        <select class="form-select" id="mata_kuliah_id" name="mata_kuliah_id">
-          <option value="">Semua Mata Kuliah</option>
-          @foreach($mataKuliahs as $mk)
-        <option value="{{ $mk->id }}" {{ $request->mata_kuliah_id == $mk->id ? 'selected' : '' }}>
-        {{ $mk->nama_mk }} ({{ $mk->kode_mk }})
-        </option>
-      @endforeach
-        </select>
-        </div>
-        <div class="col-md-3">
-        <label for="kelas" class="form-label">Kelas</label>
-        <select class="form-select" id="kelas" name="kelas">
-          <option value="">Semua Kelas</option>
-          @foreach($kelasOptions as $kelasOption)
-        <option value="{{ $kelasOption }}" {{ $request->kelas == $kelasOption ? 'selected' : '' }}>
-        {{ $kelasOption }}
-        </option>
-      @endforeach
-        </select>
-        </div>
-        <div class="col-md-3">
-        <label for="mahasiswa_id" class="form-label">Mahasiswa</label>
-        <select class="form-select" id="mahasiswa_id" name="mahasiswa_id">
-          <option value="">Semua Mahasiswa</option>
-          @foreach($mahasiswas as $mahasiswa)
-        <option value="{{ $mahasiswa->id }}" {{ $request->mahasiswa_id == $mahasiswa->id ? 'selected' : '' }}>
-        {{ $mahasiswa->nama }} ({{ $mahasiswa->nim }})
-        </option>
-      @endforeach
-        </select>
-        </div>
-        <div class="col-md-3">
-        <label for="dosen_id" class="form-label">Dosen</label>
-        <select class="form-select" id="dosen_id" name="dosen_id">
-          <option value="">Semua Dosen</option>
-          @foreach($dosens as $dosen)
-        <option value="{{ $dosen->id }}" {{ $request->dosen_id == $dosen->id ? 'selected' : '' }}>
-        {{ $dosen->nama }}
-        </option>
-      @endforeach
-        </select>
-        </div>
-        <div class="col-md-3">
-        <label for="status_kehadiran" class="form-label">Status Kehadiran</label>
-        <select class="form-select" id="status_kehadiran" name="status_kehadiran">
-          <option value="">Semua Status</option>
-          <option value="Hadir" {{ $request->status_kehadiran == 'Hadir' ? 'selected' : '' }}>Hadir</option>
-          <option value="Tidak Hadir" {{ $request->status_kehadiran == 'Tidak Hadir' ? 'selected' : '' }}>Tidak Hadir
-          </option>
-        </select>
-        </div>
-        <div class="col-md-3 align-self-end">
-        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Cari</button>
-        </div>
-        <div class="col-md-3 align-self-end">
-        <a href="{{ route('admin.kelolaPresensi.index') }}" class="btn btn-secondary w-100"><i
-          class="fas fa-sync-alt me-1"></i> Reset</a>
-        </div>
-      </div>
-      </form>
-    </div>
-    </div>
+    $('#custom-search-input').on('keyup', function () {
+      table.search(this.value).draw();
+    });
 
-    <div class="data-table-container">
-    <table class="data-table">
-      <thead>
-      <tr>
-        <th>No</th>
-        <th>Tanggal</th>
-        <th>Mahasiswa</th>
-        <th>NIM</th>
-        <th>Mata Kuliah</th>
-        <th>Kelas</th>
-        <th>Dosen</th>
-        <th>Status</th>
-        <th>Waktu</th>
-        <th class="text-center">Aksi</th>
-      </tr>
-      </thead>
-      <tbody>
-      @forelse($presensiRecords as $index => $record)
-      <tr>
-      <td>{{ $presensiRecords->firstItem() + $index }}</td>
-      <td>{{ \Carbon\Carbon::parse($record->tanggal)->format('d/m/y') }}</td>
-      <td>{{ $record->mahasiswa->nama ?? 'N/A' }}</td>
-      <td>{{ $record->mahasiswa->nim ?? 'N/A' }}</td>
-      <td>{{ $record->pengampuMataKuliah->mataKuliah->nama_mk ?? 'N/A' }}</td>
-      <td>{{ $record->pengampuMataKuliah->kelas ?? 'N/A' }}</td>
-      <td>{{ $record->pengampuMataKuliah->dosen->nama ?? 'N/A' }}</td>
-      <td>
-      @php
-      $statusClass = 'badge-status-' . strtolower(str_replace(' ', '_', $record->status_kehadiran));
-      @endphp
-      <span class="badge {{ $statusClass }}">
-        {{ $record->status_kehadiran }}
-      </span>
-      </td>
-      <td>{{ $record->waktu_presensi ? \Carbon\Carbon::parse($record->waktu_presensi)->format('H:i:s') : '-' }}</td>
-      <td class="text-center">
-      <div class="table-actions">
-        <a href="{{ route('admin.kelolaPresensi.edit', $record->id) }}" class="btn btn-sm btn-warning">
-        <i class="fas fa-edit"></i>
-        <span class="btn-text">Edit</span>
-        </a>
-        <form action="{{ route('admin.kelolaPresensi.destroy', $record->id) }}" method="POST"
-        onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-sm btn-danger">
-        <i class="fas fa-trash-alt"></i>
-        <span class="btn-text">Hapus</span>
-        </button>
-        </form>
-      </div>
-      </td>
-      </tr>
-    @empty
-      <tr>
-      <td colspan="10" class="text-center">
-      <div class="empty-state">
-        <i class="fas fa-folder-open"></i>
-        <h3 class="mt-3">Tidak ada data presensi</h3>
-        <p>Data presensi mahasiswa tidak ditemukan dengan filter yang diterapkan atau belum ada data.</p>
-      </div>
-      </td>
-      </tr>
-    @endforelse
-      </tbody>
-    </table>
-    </div>
-
-    @if ($presensiRecords->hasPages())
-    <div class="d-flex justify-content-center">
-    {{ $presensiRecords->links() }}
-    </div>
-    @endif
-
-  </div>
-@endsection
+    // Script untuk tombol delete Anda tetap sama
+    $(document).on('click', '.delete-btn', function (e) {
+      e.preventDefault();
+      const button = $(this); const url = button.data('url'); const name = button.data('name');
+      Swal.fire({
+      title: 'Anda Yakin?',
+      html: `Data presensi untuk <b>${name}</b> akan dihapus permanen.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonText: 'Batal',
+      confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+        url: url,
+        type: 'POST',
+        data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+        success: (response) => {
+          table.row(button.closest('tr')).remove().draw(false);
+          Swal.fire('Berhasil!', response.success, 'success');
+        },
+        error: (xhr) => Swal.fire('Gagal!', (xhr.responseJSON?.error || 'Terjadi kesalahan.'), 'error')
+        });
+      }
+      });
+    });
+    });
+  </script>
+@endpush

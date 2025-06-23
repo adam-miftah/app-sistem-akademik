@@ -16,4 +16,10 @@ protected $fillable = [
     'kelas',
     'deskripsi',
 ];
+public function jadwalKuliah()
+    {
+        // Pastikan path dan nama model JadwalKuliah sudah benar.
+        // Jika model Anda ada di App\Models\JadwalKuliah, maka kode ini sudah benar.
+        return $this->hasMany(JadwalKuliah::class);
+    }
 }

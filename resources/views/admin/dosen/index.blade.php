@@ -1,330 +1,208 @@
 @extends('layouts.app')
 
-@section('title', 'Kelola Data Dosen - Admin')
+@section('title', 'Kelola Data Dosen')
 @section('header_title', 'Kelola Data Dosen')
 
 @section('content')
-  <style>
-    /* Success Notification */
-    .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #28a745;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    }
-
-    /* Page Header */
-    .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-    }
-
-    .page-title {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    font-weight: 600;
-    }
-
-    /* Buttons */
-    .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    }
-
-    .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    }
-
-    .btn-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2);
-    }
-
-    .btn-warning {
-    color: var(--text-color);
-    }
-
-    .btn-warning:hover {
-    transform: translateY(-2px);
-    }
-
-    .btn-danger {
-    background-color: var(--danger-color);
-    color: white;
-    }
-
-    .btn-danger:hover {
-    background-color: #e3174a;
-    transform: translateY(-2px);
-    }
-
-    /* Table Styles */
-    .data-table-container {
-    overflow-x: auto;
-    background: var(--white-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    margin-bottom: 2rem;
-    }
-
-    .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px;
-    }
-
-    .data-table thead {
-    background-color: var(--primary-color);
-    color: white;
-    }
-
-    .data-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 500;
-    }
-
-    .data-table td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    }
-
-    .data-table tr:last-child td {
-    border-bottom: none;
-    }
-
-    .data-table tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    }
-
-    /* Empty State */
-    .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-light);
-    }
-
-    .empty-state i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: var(--text-light);
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-    .page-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .action-buttons {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .btn {
-      width: 100%;
-      justify-content: center;
-    }
-    }
-
-    @media (max-width: 576px) {
-
-    .data-table th,
-    .data-table td {
-      padding: 0.75rem;
-    }
-
-    .btn-text {
-      display: none;
-    }
-
-    .btn i {
-      margin: 0;
-    }
-    }
-
-    /* Gaya untuk form filter */
-    .filter-form {
-    background: var(--white-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: flex-end;
-    /* Memastikan tombol filter sejajar dengan input */
-    }
-
-    .filter-group {
-    flex: 1;
-    min-width: 180px;
-    /* Lebar minimum untuk setiap filter */
-    }
-
-    .filter-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-color);
-    }
-
-    .filter-group input[type="text"],
-    .filter-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: var(--text-color);
-    background-color: var(--white-bg);
-    box-sizing: border-box;
-    /* Pastikan padding tidak menambah lebar total */
-    }
-
-    .filter-buttons {
-    display: flex;
-    gap: 0.75rem;
-    }
-
-    /* Responsif untuk form filter */
-    @media (max-width: 768px) {
-    .filter-form {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .filter-group {
-      min-width: 100%;
-    }
-
-    .filter-buttons {
-      flex-direction: column;
-    }
-    }
-  </style>
-
-  <div class="content-area">
+  <div class="container-fluid">
+    {{-- Notifikasi Session --}}
     @if (session('success'))
-    <div class="alert-success">
-    <i class="fas fa-check-circle"></i>
-    {{ session('success') }}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+    @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     @endif
 
-    {{-- Form Filter --}}
-    <form action="{{ route('admin.dosens.index') }}" method="GET" class="filter-form">
-    <div class="filter-group">
-      <label for="nidn">NIDN</label>
-      <input type="text" id="nidn" name="nidn" value="{{ request('nidn') }}" placeholder="Cari NIDN...">
-    </div>
-    <div class="filter-group">
-      <label for="nama">Nama Dosen</label>
-      <input type="text" id="nama" name="nama" value="{{ request('nama') }}" placeholder="Cari nama dosen...">
-    </div>
-    {{-- <div class="filter-group">
-      <label for="prodi">Program Studi:</label> --}}
-      {{-- Anda bisa menggunakan select jika prodi sudah terdefinisi dan tetap --}}
-      {{-- <input type="text" id="prodi" name="prodi" value="{{ request('prodi') }}"
-      placeholder="Cari program studi...">
-    </div> --}}
-    <div class="filter-buttons">
-      <button type="submit" class="btn btn-primary">
-      <i class="fas fa-filter"></i> <span class="btn-text">Filter</span>
-      </button>
-      <a href="{{ route('admin.dosens.index') }}" class="btn btn-secondary"
-      style="background-color: #6c757d; color: white;">
-      <i class="fas fa-sync-alt"></i> <span class="btn-text">Reset</span>
-      </a>
-    </div>
-    </form>
-
-    <div class="page-header">
-    <h3 class="page-title">Daftar Dosen</h3>
-    <a href="{{ route('admin.dosens.create') }}" class="btn btn-primary">
-      <i class="fas fa-plus"></i>
-      <span class="btn-text">Tambah Dosen Baru</span>
-    </a>
-    </div>
-
-    <div class="data-table-container">
-    <table class="data-table">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nama</th>
-        <th>Email</th>
-        <th>NIDN</th>
-        <th>Program Studi</th>
-        <th>Aksi</th>
-      </tr>
-      </thead>
-      <tbody>
-      @forelse ($dosens as $dosen)
-      <tr>
-      <td>{{ $loop->iteration }}</td>
-      <td>{{ $dosen->nama }}</td>
-      <td>{{ $dosen->email }}</td>
-      <td>{{ $dosen->nidn ?? '-' }}</td>
-      <td>{{ $dosen->prodi ?? '-' }}</td>
-      <td>
-      <div class="action-buttons">
-        <a href="{{ route('admin.dosens.edit', $dosen->id) }}" class="btn btn-warning">
-        <i class="fas fa-edit"></i>
-        <span class="btn-text">Edit</span>
-        </a>
-        <form action="{{ route('admin.dosens.destroy', $dosen->id) }}" method="POST"
-        style="display:inline-block;">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-danger" style="background: var(--bs-danger);"
-        onclick="return confirm('Apakah Anda yakin ingin menghapus data dosen ini?')">
-        <i class="fas fa-trash-alt"></i>
-        <span class="btn-text">Hapus</span>
-        </button>
-        </form>
+    {{-- Card Utama --}}
+    <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3">
+      <h4 class="mb-3 fw-bold text-gradient">
+      <i class="fas fa-chalkboard-teacher me-2"></i>Data Dosen
+      </h4>
+      <hr>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="input-group input-group-sm" style="max-width: 350px;">
+        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" id="custom-search-input" class="form-control border-start-0"
+        placeholder="Cari nama, NIDN, atau email...">
       </div>
-      </td>
-      </tr>
-    @empty
+      <a href="{{ route('admin.dosens.create') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus-circle me-1"></i> Tambah Dosen Baru
+      </a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 @if($dosens->isEmpty()) is-empty @endif" id="dosens-table"
+        style="width:100%">
+        <thead class="table-light">
+        <tr>
+          <th class="text-center" width="5%">No.</th>
+          <th>Nama Dosen</th>
+          <th>NIDN</th>
+          <th>Program Studi</th>
+          <th class="text-center">Aksi</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse ($dosens as $dosen)
       <tr>
-      <td colspan="6" class="empty-state">
-      <i class="fas fa-user-slash"></i>
-      <p>Tidak ada data dosen.</p>
-      </td>
+        <td class="text-center">{{ $loop->iteration }}</td>
+        <td data-label="Nama Dosen">
+        <div class="d-flex align-items-center">
+        <div class="avatar-sm me-3">{{ strtoupper(substr($dosen->nama, 0, 1)) }}</div>
+        <div>
+        <span class="fw-semibold d-block">{{ $dosen->nama }}</span>
+        <small class="text-muted">{{ $dosen->email }}</small>
+        </div>
+        </div>
+        </td>
+        <td data-label="NIDN">{{ $dosen->nidn ?? '-' }}</td>
+        <td data-label="Prodi">{{ $dosen->prodi ?? '-' }}</td>
+        <td data-label="Aksi" class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+        <a href="{{ route('admin.dosens.edit', $dosen->id) }}" class="btn btn-sm btn-outline-warning"
+        data-bs-toggle="tooltip" title="Edit"><i class="fas fa-edit"></i></a>
+        <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+        data-url="{{ route('admin.dosens.destroy', $dosen->id) }}" data-name="{{ $dosen->nama }}"
+        data-bs-toggle="tooltip" title="Hapus">
+        <i class="fas fa-trash-alt"></i>
+        </button>
+        </div>
+        </td>
       </tr>
-    @endforelse
-      </tbody>
-    </table>
+      @empty
+      <tr>
+        <td colspan="5" class="text-center py-5 text-muted">
+        <i class="fas fa-folder-open fa-3x mb-3"></i>
+        <p class="mb-0">Belum ada data dosen.</p>
+        </td>
+      </tr>
+      @endforelse
+        </tbody>
+      </table>
+      </div>
+    </div>
     </div>
   </div>
 @endsection
+
+@push('styles')
+  <style>
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    }
+
+    .table th {
+    font-weight: 600;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    }
+
+    .table td {
+    vertical-align: middle;
+    font-size: .875rem;
+    }
+
+    .avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+    .table thead {
+      display: none;
+    }
+
+    .table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid #dee2e6;
+      border-radius: .5rem;
+    }
+
+    .table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      padding: .75rem 1rem;
+    }
+
+    .table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #6c757d;
+      margin-right: 1rem;
+    }
+
+    .table td:last-child {
+      border-bottom: 0;
+    }
+    }
+  </style>
+@endpush
+
+@push('scripts')
+  <script>
+    $(document).ready(function () {
+    var table = $('#dosens-table:not(.is-empty)').DataTable({
+      dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+      paging: false,
+      lengthChange: false,
+      searching: true,
+      ordering: true,
+      info: false,
+      order: [[1, 'asc']],
+      language: { search: "", zeroRecords: "Data tidak ditemukan.", info: "Menampilkan _START_ - _END_ dari _TOTAL_ dosen", infoEmpty: "Menampilkan 0 dosen", paginate: { next: "›", previous: "‹" } },
+      columnDefs: [
+      { searchable: false, orderable: false, targets: 0, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+      { orderable: false, searchable: false, targets: 4 }
+      ],
+      drawCallback: () => $('[data-bs-toggle="tooltip"]').each(function () { new bootstrap.Tooltip(this) })
+    });
+    $('#custom-search-input').on('keyup', function () { table.search(this.value).draw(); });
+
+    $(document).on('click', '.delete-btn', function (e) {
+      e.preventDefault();
+      const button = $(this);
+      const url = button.data('url');
+      const name = button.data('name');
+
+      Swal.fire({
+      title: 'Anda Yakin?', html: `Data untuk <b>${name}</b> dan akun login terkait akan dihapus.`, icon: 'warning',
+      showCancelButton: true, confirmButtonColor: '#d33', cancelButtonText: 'Batal', confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+        url: url, type: 'POST', data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+        success: function (response) {
+          table.row(button.closest('tr')).remove().draw(false);
+          Swal.fire('Berhasil!', response.success, 'success');
+        },
+        error: (xhr) => Swal.fire('Gagal!', (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Terjadi kesalahan.', 'error')
+        });
+      }
+      });
+    });
+    });
+  </script>
+@endpush

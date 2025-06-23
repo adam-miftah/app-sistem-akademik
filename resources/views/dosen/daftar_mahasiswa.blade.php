@@ -1,450 +1,184 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar Mahasiswa Dosen')
+@section('title', 'Daftar Mahasiswa')
 @section('header_title', 'Daftar Mahasiswa')
 
 @section('content')
-  <style>
-    /* Notification Styles */
-    .alert-success {
-      background-color: #d4edda;
-      color: #155724;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid #28a745;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .alert-danger {
-      background-color: #f8d7da;
-      color: #721c24;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid #dc3545;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    /* Header Styles */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .page-title {
-      margin: 0;
-      color: var(--text-color);
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-
-    /* Filter Form */
-    .filter-form {
-      background-color: #f8f9fa;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-    }
-
-    .form-select {
-      border-radius: 6px;
-      border: 1px solid #e2e8f0;
-      padding: 0.5rem 1rem;
-    }
-
-    .btn-primary {
-      background-color: #4361ee;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-primary:hover {
-      background-color: #3a56d4;
-    }
-
-    /* Table Styles */
-    .data-table-container {
-      overflow-x: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      margin-bottom: 2rem;
-    }
-
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 900px;
-    }
-
-    .data-table thead {
-      background-color: #4361ee;
-      color: white;
-    }
-
-    .data-table th {
-      padding: 1rem;
-      text-align: left;
-      font-weight: 500;
-    }
-
-    .data-table td {
-      padding: 1rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    .data-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .data-table tr:hover {
-      background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    /* Attendance Badges */
-    .attendance-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .badge-present {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .badge-absent {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    /* Switch Styles */
-    .form-switch .form-check-input {
-      width: 3em;
-      height: 1.5em;
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: #6c757d;
-    }
-
-    .empty-state i {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: #adb5bd;
-    }
-    
-    
-
-    /* Responsive Adjustments */
-    @media (max-width: 992px) {
-      .data-table td:nth-child(4),
-      .data-table th:nth-child(4),
-      .data-table td:nth-child(5),
-      .data-table th:nth-child(5) {
-        display: none;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .filter-form .row {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .data-table th,
-      .data-table td {
-        padding: 0.75rem;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .data-table td:nth-child(3),
-      .data-table th:nth-child(3) {
-        display: none;
-      }
-    }
-  </style>
-
-  <div class="content-area">
-    @if(session('success'))
-      <div class="alert-success">
-        <i class="fas fa-check-circle"></i>
-        {{ session('success') }}
-      </div>
-    @endif
-
-    @if(session('error'))
-      <div class="alert-danger">
-        <i class="fas fa-exclamation-circle"></i>
-        {{ session('error') }}
-      </div>
-    @endif
-
-    <div class="page-header">
-      <h3 class="page-title">Daftar Mahasiswa</h3>
-    </div>
-
-    {{-- Filter Form --}}
-    <form action="{{ route('dosen.lihatDaftarMahasiswa') }}" method="GET" class="filter-form">
-      <div class="row align-items-center g-3">
-        <div class="col-md-4">
-          <select name="kelas" id="kelas_filter" class="form-select">
-            <option value="">-- Semua Kelas --</option>
-            @foreach($kelasOptions as $option)
-              <option value="{{ $option }}" {{ $selectedKelas == $option ? 'selected' : '' }}>
-                {{ $option }}
-              </option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="col-md-4">
-          <select name="mata_kuliah_id" id="mata_kuliah_filter" class="form-select">
-            <option value="">-- Semua Mata Kuliah --</option>
-            @foreach($mataKuliahsDiajar as $mk)
-              <option value="{{ $mk->id }}" {{ $selectedMataKuliah == $mk->id ? 'selected' : '' }}>
-                {{ $mk->nama_mk }} ({{ $mk->kode_mk }})
-              </option>
-            @endforeach
-          </select>
-        </div>
-
-        <div class="col-md-auto">
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-filter me-1"></i> Filter
-          </button>
-        </div>
-      </div>
-    </form>
-
-    @if($mahasiswas->isEmpty())
-      <div class="data-table-container">
-        <div class="empty-state">
-          <i class="fas fa-user-graduate"></i>
-          <h3 class="mt-3">Tidak ada mahasiswa yang terkait</h3>
-          <p>Sesuaikan filter atau hubungi administrasi jika ini sebuah kesalahan</p>
-        </div>
-      </div>
-    @else
-      <div class="data-table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nama</th>
-              <th>Mata Kuliah</th>
-              <th>Kelas</th>
-              <th>Jam</th>
-              <th>Ruangan</th>
-              <th>Presensi Hari Ini</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach($mahasiswas as $mhs)
-              @php
-                $isHadirToday = $presensiStatusHariIni->has($mhs->id) && $presensiStatusHariIni->get($mhs->id) === 'Hadir';
-
-                $displayedMataKuliah = '';
-                $displayedJam = '-';
-                $displayedRuangan = '-';
-
-                if ($selectedMataKuliah) {
-                  $filteredMk = $mataKuliahsDiajar->firstWhere('id', $selectedMataKuliah);
-                  $displayedMataKuliah = $filteredMk ? $filteredMk->nama_mk . ' (' . $filteredMk->kode_mk . ')' : '-';
-
-                  if ($pengampuDetailForDisplay && $pengampuDetailForDisplay->mata_kuliah_id == $selectedMataKuliah && $pengampuDetailForDisplay->kelas == ($mhs->kelas ?? '')) {
-                    $displayedJam = \Carbon\Carbon::parse($pengampuDetailForDisplay->jam_mulai)->format('H:i') . ' - ' . \Carbon\Carbon::parse($pengampuDetailForDisplay->jam_selesai)->format('H:i');
-                    $displayedRuangan = $pengampuDetailForDisplay->ruangan;
-                  }
-                } else {
-                  $displayedMataKuliah = 'Pilih Mata Kuliah terlebih dahulu';
-                }
-              @endphp
-              <tr id="mahasiswa-row-{{ $mhs->id }}">
-                <td>
-                  <div>{{ $mhs->nama }}</div>
-                </td>
-                <td>{{ $displayedMataKuliah }}</td>
-                <td>{{ $mhs->kelas ?? '-' }}</td>
-                <td>{{ $displayedJam }}</td>
-                <td>{{ $displayedRuangan }}</td>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="form-check form-switch">
-                      <input class="form-check-input presensi-toggle" type="checkbox" role="switch"
-                        id="presensiToggle{{ $mhs->id }}" data-mahasiswa-id="{{ $mhs->id }}" {{ $isHadirToday ? 'checked' : '' }}>
+<div class="container-fluid">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white p-3">
+            <h4 class="mb-3 fw-bold text-gradient">
+                <i class="fas fa-users me-2"></i>Daftar Mahasiswa Bimbingan
+            </h4>
+            <hr>
+            {{-- Filter Form diubah menjadi kontrol DataTables --}}
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <label class="input-group-text" for="kelas_filter">Kelas</label>
+                        <select id="kelas_filter" class="form-select">
+                            <option value="">Semua Kelas</option>
+                            @foreach($kelasDiajarOlehDosen as $kelas)
+                                <option value="{{ $kelas }}">{{ $kelas }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <span id="presensi-status-text-{{ $mhs->id }}"
-                      class="attendance-badge {{ $isHadirToday ? 'badge-present' : 'badge-absent' }}">
-                      {{ $isHadirToday ? 'Hadir' : 'Tidak Hadir' }}
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-    @endif
-  </div>
+                </div>
+                <div class="col-md-5">
+                     <div class="input-group input-group-sm">
+                        <label class="input-group-text" for="matakuliah_filter">Mata Kuliah</label>
+                        <select id="matakuliah_filter" class="form-select">
+                            <option value="">Semua Mata Kuliah</option>
+                             @foreach($mataKuliahsDiajar as $pengampu)
+                                <option value="{{ optional($pengampu->mataKuliah)->nama_mk }}">
+                                    {{ optional($pengampu->mataKuliah)->nama_mk }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                 <div class="col-md-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="custom-search-input" class="form-control border-start-0" placeholder="Cari nama/NIM...">
+                    </div>
+                </div>
+            </div>
+        </div>
 
- @push('scripts')
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 @if($mahasiswas->isEmpty()) is-empty @endif"
+                    id="mahasiswa-dosen-table" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" width="5%">No.</th>
+                            <th class="text-center">Mahasiswa</th>
+                            <th class="text-center">NIM</th>
+                            <th class="text-center">Kelas</th>
+                            <th class="text-center">Presensi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($mahasiswas as $mhs)
+                        <tr id="mahasiswa-row-{{ $mhs->id }}">
+                            <td class="text-center"></td>
+                            <td data-label="Mahasiswa">{{ $mhs->nama }}</td>
+                            <td data-label="NIM" class="text-start">{{ $mhs->nim }}</td>
+                            <td data-label="Kelas" class="text-start">{{ $mhs->kelas }}</td>
+                            <td data-label="Presensi" class="text-center">
+                                @php
+                                    $isHadirToday = isset($presensiStatusHariIni[$mhs->id]);
+                                @endphp
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input presensi-toggle" type="checkbox" role="switch"
+                                        id="presensiToggle{{ $mhs->id }}" 
+                                        data-mahasiswa-id="{{ $mhs->id }}" 
+                                        {{ $isHadirToday ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="presensiToggle{{ $mhs->id }}">
+                                        <span id="presensi-status-text-{{ $mhs->id }}" 
+                                            class="badge rounded-pill {{ $isHadirToday ? 'bg-success' : 'bg-danger' }} ms-2">
+                                            {{ $isHadirToday ? 'Hadir' : 'Tidak Hadir' }}
+                                        </span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                <p class="mb-0">Tidak ada mahasiswa yang terdaftar di kelas yang Anda ajar.</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+    /* Style yang konsisten dengan halaman lain */
+    .text-gradient { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .table th { font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; }
+    .table td { vertical-align: middle; font-size: .875rem; }
+    .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+</style>
+@endpush
+
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const presensiToggles = document.querySelectorAll('.presensi-toggle');
-    const contentArea = document.querySelector('.content-area'); // Container untuk alert dinamis
-
-    // Fungsi untuk menampilkan pesan alert dinamis
-    function showAlert(type, message) {
-        // Hapus alert lama jika ada
-        const existingAlert = contentArea.querySelector('.dynamic-alert');
-        if (existingAlert) {
-            existingAlert.remove();
+$(document).ready(function () {
+    var table = $('#mahasiswa-dosen-table').DataTable({
+        dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+        paging: false,
+        lengthChange: false,
+        searching: true,
+        ordering: true,
+        info: false,
+        order: [[1, 'asc']], // Urutkan berdasarkan nama mahasiswa
+        columnDefs: [
+            { searchable: false, orderable: false, targets: [0, 4] },
+            { targets: [1, 2, 3, 4], className: 'text-nowrap' } // Mencegah wrap teks
+        ],
+        "fnDrawCallback": function (oSettings) {
+            this.api().column(0, {search:'applied', order:'applied'}).nodes().each( function (cell, i) {
+                cell.innerHTML = i + 1;
+            });
         }
+    });
 
-        const alertElement = document.createElement('div');
-        alertElement.className = `dynamic-alert alert-${type}`; // e.g., alert-success or alert-danger
-        alertElement.style.display = 'flex';
-        alertElement.style.alignItems = 'center';
-        alertElement.style.gap = '0.75rem';
-        // Anda bisa menambahkan style lain yang diperlukan sesuai class .alert-success / .alert-danger Anda
-        // Jika class CSS Anda sudah mengatur padding, border-radius, margin, dll. maka tidak perlu style inline lagi.
-        // Pastikan class alert-success dan alert-danger punya style yang sesuai.
-        // Untuk styling minimal:
-        alertElement.style.padding = '1rem';
-        alertElement.style.borderRadius = '8px';
-        alertElement.style.marginBottom = '1.5rem';
+    // Custom search
+    $('#custom-search-input').on('keyup', function () {
+        table.column(1).search(this.value).draw();
+    });
 
-
-        if (type === 'success') {
-            alertElement.style.backgroundColor = '#d4edda';
-            alertElement.style.color = '#155724';
-            alertElement.style.borderLeft = '4px solid #28a745';
-            alertElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>${message}</span>`;
-        } else { // 'danger'
-            alertElement.style.backgroundColor = '#f8d7da';
-            alertElement.style.color = '#721c24';
-            alertElement.style.borderLeft = '4px solid #dc3545';
-            alertElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${message}</span>`;
-        }
-
-        // Sisipkan di bagian atas content-area
-        if (contentArea) {
-            contentArea.insertBefore(alertElement, contentArea.firstChild);
-        } else {
-            // Fallback jika .content-area tidak ditemukan
-            document.body.insertBefore(alertElement, document.body.firstChild);
-        }
-
-        // Efek fade out dan remove setelah 5 detik
-        setTimeout(() => {
-            alertElement.style.transition = 'opacity 0.5s ease';
-            alertElement.style.opacity = '0';
-            setTimeout(() => alertElement.remove(), 500); // Hapus dari DOM setelah transisi selesai
-        }, 5000);
-    }
-
-    presensiToggles.forEach(toggle => {
+    // Custom filter for Kelas
+    $('#kelas_filter').on('change', function () {
+        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        table.column(3).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+    
+    document.querySelectorAll('.presensi-toggle').forEach(toggle => {
         toggle.addEventListener('change', function () {
             const mahasiswaId = this.dataset.mahasiswaId;
-            const isPresentNewState = this.checked; // Keadaan BARU dari checkbox
+            const isPresent = this.checked;
             const statusTextSpan = document.getElementById(`presensi-status-text-${mahasiswaId}`);
-            const row = document.getElementById(`mahasiswa-row-${mahasiswaId}`);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            // Simpan state SEBELUMNYA untuk revert jika error
-            const previousCheckedState = !isPresentNewState;
-
-            // Animasi loading
-            if(row) row.style.opacity = '0.7';
-            if(statusTextSpan) {
-                statusTextSpan.textContent = 'Memproses...';
-                statusTextSpan.classList.remove('badge-present', 'badge-absent'); // Hapus class lama segera
-            }
-
+            // ... sisa script fetch AJAX Anda ...
             fetch("{{ route('dosen.togglePresensiHarian') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({
                     mahasiswa_id: mahasiswaId,
-                    is_present: isPresentNewState
+                    is_present: isPresent
                 })
             })
-            .then(response => {
-                if (!response.ok) {
-                    // Jika status HTTP bukan 2xx, coba parse error JSON jika ada
-                    return response.json().then(errData => {
-                        throw { status: response.status, data: errData };
-                    });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                if(row) row.style.opacity = '1';
                 if (data.success) {
-                    if(statusTextSpan) {
-                        statusTextSpan.textContent = data.status_kehadiran; // Dari response controller ('Hadir' / 'Tidak Hadir')
-                        statusTextSpan.classList.remove('badge-present', 'badge-absent'); // Pastikan bersih
-                        statusTextSpan.classList.add(data.status_kehadiran === 'Hadir' ? 'badge-present' : 'badge-absent');
-                    }
-                    showAlert('success', data.message);
+                    statusTextSpan.textContent = data.status_kehadiran;
+                    statusTextSpan.classList.toggle('bg-success', data.status_kehadiran === 'Hadir');
+                    statusTextSpan.classList.toggle('bg-danger', data.status_kehadiran !== 'Hadir');
                 } else {
-                    // Gagal dari sisi server (data.success === false)
-                    this.checked = previousCheckedState; // Kembalikan checkbox
-                    if(statusTextSpan) {
-                        statusTextSpan.classList.remove('badge-present', 'badge-absent');
-                        statusTextSpan.textContent = previousCheckedState ? 'Hadir' : 'Tidak Hadir';
-                        statusTextSpan.classList.add(previousCheckedState ? 'badge-present' : 'badge-absent');
-                    }
-                    showAlert('danger', data.message || 'Gagal memperbarui presensi.');
+                    this.checked = !isPresent; // Revert
+                    alert(data.message || 'Gagal memperbarui status.');
                 }
-            })
-            .catch(error => {
-                if(row) row.style.opacity = '1';
-                this.checked = previousCheckedState; // Kembalikan checkbox pada error network/parsing
-                 if(statusTextSpan) {
-                    statusTextSpan.classList.remove('badge-present', 'badge-absent');
-                    statusTextSpan.textContent = previousCheckedState ? 'Hadir' : 'Tidak Hadir';
-                    statusTextSpan.classList.add(previousCheckedState ? 'badge-present' : 'badge-absent');
-                }
-
-                console.error('Error:', error);
-                let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-                if (error.data && error.data.message) {
-                    errorMessage = error.data.message;
-                    if(error.data.errors) { // Untuk error validasi
-                        const firstErrorKey = Object.keys(error.data.errors)[0];
-                        errorMessage += ` (${error.data.errors[firstErrorKey][0]})`;
-                    }
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-                showAlert('danger', errorMessage);
+            }).catch(error => {
+                this.checked = !isPresent; // Revert
+                alert('Terjadi kesalahan koneksi.');
             });
         });
     });
 });
 </script>
 @endpush
-@endsection

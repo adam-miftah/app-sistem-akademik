@@ -292,7 +292,7 @@
         <option value="">Pilih Mata Kuliah & Kelas</option>
         @foreach ($pengampuMataKuliahs as $pengampu)
       <option value="{{ $pengampu->id }}" {{ old('pengampu_mata_kuliah_id') == $pengampu->id ? 'selected' : '' }}>
-        {{ $pengampu->mataKuliah->nama_mk }} ({{ $pengampu->kelas }}) - Dosen: {{ $pengampu->dosen->nama }}
+        {{ $pengampu->mataKuliah->nama_mk }} ({{ $pengampu->kelas }})
       </option>
       @endforeach
         </select>

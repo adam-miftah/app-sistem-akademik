@@ -1,200 +1,108 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Mata Kuliah Baru - Admin')
-@section('header_title', 'Tambah Mata Kuliah Baru')
+@section('title', 'Tambah Mata Kuliah Baru')
 
 @section('content')
-    <style>
-        /* Form Container */
-        .form-container {
-            background: var(--white-bg);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-light);
-        }
-
-        /* Form Title */
-        .card-header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
-            border-radius: 10px 10px 0 0 !important;
-        }
-
-        .card-title {
-            margin: 0;
-            font-size: 1.25rem;
-        }
-
-        /* Error Notification */
-        .alert-error {
-            background-color: #fce8e8;
-            color: #cc0000;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid #dc3545;
-        }
-
-        /* Form Groups */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-family: 'Poppins', sans-serif;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-        }
-
-        select.form-control {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 16px 12px;
-        }
-
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        /* Form Actions */
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        /* Input Groups with Icons */
-        .input-group {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-        }
-
-        .input-group .form-control {
-            padding-left: 2.5rem;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 1.5rem;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-    </style>
-
-    <div class="content-area">
-        <div class="form-container">
-            <div class="card-header">
-                <h4 class="card-title">Form Tambah Mata Kuliah</h4>
-            </div>
-
-            @if ($errors->any())
-                <div class="alert-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <ul style="margin: 0.5rem 0 0 1rem;">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('admin.mataKuliahs.store') }}" method="POST">
-                @csrf
-                <div class="form-group">
-                    <label for="kode_mk">Kode Mata Kuliah</label>
-                    <div class="input-group">
-                        <i class="fas fa-code input-icon"></i>
-                        <input type="text" id="kode_mk" name="kode_mk" value="{{ old('kode_mk') }}" class="form-control"
-                            placeholder="Contoh: IF401" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="nama_mk">Nama Mata Kuliah</label>
-                    <div class="input-group">
-                        <i class="fas fa-book input-icon"></i>
-                        <input type="text" id="nama_mk" name="nama_mk" value="{{ old('nama_mk') }}" class="form-control"
-                            placeholder="Contoh: Pemrograman Web" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="sks">SKS</label>
-                    <div class="input-group">
-                        <i class="fas fa-hourglass-half input-icon"></i>
-                        <input type="number" id="sks" name="sks" value="{{ old('sks') }}" class="form-control" min="1"
-                            max="6" required>
-                    </div>
-                </div>
-                {{-- PERUBAHAN DI SINI: DARI SEMESTER MENJADI KELAS --}}
-                <div class="form-group">
-                    <label for="kelas">Kelas</label>
-                    <div class="input-group">
-                        <i class="fas fa-chalkboard input-icon"></i>
-                        <select id="kelas" name="kelas" class="form-control" required>
-                            <option value="">Pilih Kelas</option>
-                            <option value="Reguler A" {{ old('kelas') == 'Reguler A' ? 'selected' : '' }}>Reguler A</option>
-                            <option value="Reguler B" {{ old('kelas') == 'Reguler B' ? 'selected' : '' }}>Reguler B</option>
-                            <option value="Reguler CK" {{ old('kelas') == 'Reguler CK' ? 'selected' : '' }}>Reguler CK
-                            </option>
-                            <option value="Reguler CS" {{ old('kelas') == 'Reguler CS' ? 'selected' : '' }}>Reguler CS
-                            </option>
-                            {{-- Tambahkan opsi kelas lain sesuai kebutuhan Anda --}}
-                        </select>
-                    </div>
-                    @error('kelas')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-                {{-- AKHIR PERUBAHAN --}}
-                <div class="form-group">
-                    <label for="deskripsi">Deskripsi (opsional)</label>
-                    <textarea id="deskripsi" name="deskripsi" class="form-control" rows="3"
-                        placeholder="Deskripsi singkat mata kuliah">{{ old('deskripsi') }}</textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Simpan Mata Kuliah
-                    </button>
-                    <a href="{{ route('admin.mataKuliahs.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
-                    </a>
-                </div>
-            </form>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 fw-bold text-gradient"><i class="fas fa-plus-circle me-2"></i>Tambah Mata Kuliah Baru</h4>
         </div>
+
+        <form action="{{ route('admin.mataKuliahs.store') }}" method="POST" id="main-form">
+            @csrf
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white p-3">
+                            <h5 class="mb-0 fw-semibold"><i class="fas fa-book-open me-2 text-primary"></i>Detail Mata
+                                Kuliah</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4"><label for="kode_mk" class="form-label required">Kode MK</label><input
+                                        type="text" class="form-control" id="kode_mk" name="kode_mk"
+                                        value="{{ old('kode_mk') }}" required></div>
+                                <div class="col-md-8"><label for="nama_mk" class="form-label required">Nama Mata
+                                        Kuliah</label><input type="text" class="form-control" id="nama_mk" name="nama_mk"
+                                        value="{{ old('nama_mk') }}" required></div>
+                                <div class="col-md-6"><label for="sks" class="form-label required">Jumlah SKS</label><input
+                                        type="number" class="form-control" id="sks" name="sks" value="{{ old('sks') }}"
+                                        min="1" max="6" required></div>
+                                <div class="col-md-6"><label for="kelas" class="form-label required">Kelas</label><select
+                                        id="kelas" name="kelas" class="form-select" required>
+                                        <option value="">Pilih Kelas</option>
+                                        <option value="Reguler A">Reguler A</option>
+                                        <option value="Reguler B">Reguler B</option>
+                                        <option value="Reguler CK">Reguler CK</option>
+                                        <option value="Reguler CS">Reguler CS</option>
+                                    </select></div>
+                                <div class="col-12"><label for="deskripsi" class="form-label">Deskripsi</label><textarea
+                                        class="form-control" id="deskripsi" name="deskripsi"
+                                        rows="3">{{ old('deskripsi') }}</textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                        <div class="card-header bg-white p-3">
+                            <h5 class="mb-0 fw-semibold"><i class="fas fa-cog me-2 text-primary"></i>Aksi</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Pastikan semua data yang ditandai * terisi dengan benar.</p>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" id="submit-button"><i
+                                        class="fas fa-save me-2"></i>Simpan</button>
+                                <a href="{{ route('admin.mataKuliahs.index') }}" class="btn btn-outline-secondary">Batal</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: var(--bs-danger)
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script>
+        $('#main-form').on('submit', function (e) {
+            e.preventDefault();
+            const form = $(this), submitButton = $('#submit-button');
+            submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+            $('.form-control, .form-select').removeClass('is-invalid');
+            $.ajax({
+                url: form.attr('action'), type: 'POST', data: form.serialize(),
+                success: (response) => {
+                    Swal.fire({ title: 'Berhasil!', text: response.success, icon: 'success', timer: 2000, showConfirmButton: false })
+                        .then(() => window.location.href = "{{ route('admin.mataKuliahs.index') }}");
+                },
+                error: (xhr) => {
+                    submitButton.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Simpan');
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        $.each(errors, (key, value) => $(`#${key}`).addClass('is-invalid'));
+                        Swal.fire('Gagal Validasi', 'Mohon periksa kembali data yang Anda masukkan.', 'error');
+                    } else {
+                        Swal.fire('Error!', 'Terjadi kesalahan di server.', 'error');
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

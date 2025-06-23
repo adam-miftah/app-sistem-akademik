@@ -3,109 +3,131 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Dosen; 
-use App\Models\User; 
+use App\Models\Dosen;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 
 class DosenController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-         $filterNama = $request->input('nama');
-        $filterNIDN = $request->input('nidn');
-        $filterProdi = $request->input('prodi');
-
-        // Mulai query Dosen
-        $query = Dosen::query();
-
-        if (!empty($filterNama)) {
-            $query->where('nama', 'like', '%' . $filterNama . '%');
-        }
-
-        if (!empty($filterNIDN)) {
-            $query->where('nidn', 'like', '%' . $filterNIDN . '%');
-        }
-
-        if (!empty($filterProdi)) {
-            $query->where('prodi', 'like', '%' . $filterProdi . '%');
-        }
-
-        $dosens = $query->orderBy('nama')->get();
-
+        // Mengambil semua data untuk dikelola oleh DataTables di sisi klien
+        $dosens = Dosen::with('user')->orderBy('nama')->get();
         return view('admin.dosen.index', compact('dosens'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         return view('admin.dosen.create');
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        // Validasi input untuk User dan Dosen
         $request->validate([
-            'user_name' => 'required|string|max:255',
-            'user_email' => 'required|email|unique:users,email|max:255', 
-            'password' => 'required|string|min:8|confirmed', 
-
             'nama' => 'required|string|max:255',
-            'email' => 'required|email|unique:dosens,email|max:255', 
-            'nidn' => 'nullable|string|unique:dosens,nidn|max:20', 
+            'email' => 'required|email|max:255|unique:users,email|unique:dosens,email',
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'nidn' => 'nullable|string|max:20|unique:dosens,nidn',
             'prodi' => 'nullable|string|max:255',
         ]);
 
         try {
-            $user = User::create([
-                'name' => $request->user_name,
-                'email' => $request->user_email,
-                'password' => Hash::make($request->password),
-                'role' => 'dosen', 
-            ]);
+            DB::transaction(function () use ($request) {
+                // Buat akun user terlebih dahulu
+                $user = User::create([
+                    'name' => $request->nama,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'role' => 'dosen',
+                ]);
 
-            Dosen::create([
-                'user_id' => $user->id, 
-                'nama' => $request->nama,
-                'email' => $request->email,
-                'nidn' => $request->nidn,
-                'prodi' => $request->prodi,
-            ]);
-
-            return redirect()->route('admin.dosens.index')->with('success', 'Akun dosen dan profil berhasil ditambahkan!');
-
+                // Buat profil dosen yang terhubung dengan user
+                $user->dosen()->create([
+                    'nama' => $request->nama,
+                    'email' => $request->email,
+                    'nidn' => $request->nidn,
+                    'prodi' => $request->prodi,
+                ]);
+            });
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal menambahkan dosen: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal menambahkan dosen: ' . $e->getMessage()], 500);
         }
+
+        return response()->json(['success' => 'Akun dosen dan profil berhasil ditambahkan!']);
     }
 
-    public function show(Dosen $dosen)
-    {
-        return redirect()->route('admin.dosens.edit', $dosen);
-    }
-
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(Dosen $dosen)
     {
         $dosen->load('user');
         return view('admin.dosen.edit', compact('dosen'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, Dosen $dosen)
     {
-        // Validasi input
+        $user = $dosen->user;
+        
         $request->validate([
             'nama' => 'required|string|max:255',
-            'email' => 'required|email|unique:dosens,email,' . $dosen->id, // Email unik, kecuali untuk dirinya sendiri
-            'nidn' => 'nullable|string|unique:dosens,nidn,' . $dosen->id . '|max:20',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id . '|unique:dosens,email,' . $dosen->id,
+            'nidn' => 'nullable|string|max:20|unique:dosens,nidn,' . $dosen->id,
             'prodi' => 'nullable|string|max:255',
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $dosen->update($request->only(['nama', 'email', 'nidn', 'prodi']));
-        return redirect()->route('admin.dosens.index')->with('success', 'Data dosen berhasil diperbarui!');
+        try {
+            DB::transaction(function () use ($request, $dosen, $user) {
+                $dosen->update($request->only(['nama', 'email', 'nidn', 'prodi']));
+                
+                $userData = ['name' => $request->nama, 'email' => $request->email];
+                if ($request->filled('password')) {
+                    $userData['password'] = Hash::make($request->password);
+                }
+                $user->update($userData);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Gagal memperbarui data dosen: ' . $e->getMessage()], 500);
+        }
+        
+        return response()->json(['success' => 'Data dosen berhasil diperbarui!']);
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Dosen $dosen)
     {
-        $dosen->delete(); 
-        return redirect()->route('admin.dosens.index')->with('success', 'Data dosen berhasil dihapus!');
+        // Pengecekan relasi, contoh: jika dosen masih punya jadwal mengajar
+        if ($dosen->pengampuMataKuliah()->exists()) {
+            return response()->json(['error' => 'Dosen tidak dapat dihapus karena masih memiliki jadwal mengajar.'], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($dosen) {
+                // Hapus user terkait, yang akan cascade menghapus profil dosen
+                $dosen->user()->delete();
+            });
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+        }
+
+        return response()->json(['success' => 'Data dosen berhasil dihapus!']);
     }
 }

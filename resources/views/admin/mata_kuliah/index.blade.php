@@ -1,354 +1,172 @@
 @extends('layouts.app')
 
-@section('title', 'Kelola Data Mata Kuliah - Admin')
-@section('header_title', 'Kelola Data Mata Kuliah')
+@section('title', 'Kelola Data Mata Kuliah')
 
 @section('content')
-  <style>
-    /* Success Notification */
-    .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #28a745;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    }
-
-    /* Page Header */
-    .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-    }
-
-    .page-title {
-    margin: 0;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    font-weight: 600;
-    }
-
-    /* Buttons */
-    .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    }
-
-    .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    }
-
-    .btn-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2);
-    }
-
-    .btn-secondary {
-    /* Added for Reset button */
-    background-color: #6c757d;
-    color: white;
-    }
-
-    .btn-secondary:hover {
-    /* Added for Reset button */
-    background-color: #5a6268;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
-    }
-
-    .btn-warning {
-    color: var(--text-color);
-    /* Kepp default color for warning (usually black/dark text on yellow background) */
-    }
-
-    .btn-warning:hover {
-    transform: translateY(-2px);
-    }
-
-    .btn-danger {
-    background-color: var(--danger-color);
-    /* Ensure --danger-color is defined in your CSS variables */
-    color: white;
-    }
-
-    .btn-danger:hover {
-    background-color: #e3174a;
-    transform: translateY(-2px);
-    }
-
-    /* Table Styles */
-    .data-table-container {
-    overflow-x: auto;
-    background: var(--white-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    margin-bottom: 2rem;
-    }
-
-    .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px;
-    }
-
-    .data-table thead {
-    background-color: var(--primary-color);
-    color: white;
-    }
-
-    .data-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 500;
-    }
-
-    .data-table td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    }
-
-    .data-table tr:last-child td {
-    border-bottom: none;
-    }
-
-    .data-table tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    }
-
-    /* Empty State */
-    .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-light);
-    }
-
-    .empty-state i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: var(--text-light);
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 992px) {
-
-    .data-table td:nth-child(6),
-    .data-table th:nth-child(6) {
-      display: none;
-    }
-    }
-
-    @media (max-width: 768px) {
-    .page-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .action-buttons {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .btn {
-      width: 100%;
-      justify-content: center;
-    }
-    }
-
-    @media (max-width: 576px) {
-
-    .data-table th,
-    .data-table td {
-      padding: 0.75rem;
-    }
-
-    .btn-text {
-      display: none;
-    }
-
-    .btn i {
-      margin: 0;
-    }
-    }
-
-    /* Filter Form Styles */
-    .filter-form {
-    background: var(--white-bg);
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: flex-end;
-    /* Ensures filter buttons align with inputs */
-    }
-
-    .filter-group {
-    flex: 1;
-    min-width: 180px;
-    /* Minimum width for each filter input */
-    }
-
-    .filter-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-color);
-    }
-
-    .filter-group input[type="text"],
-    .filter-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: var(--text-color);
-    background-color: var(--white-bg);
-    box-sizing: border-box;
-    /* Ensures padding doesn't add to total width */
-    }
-
-    .filter-buttons {
-    display: flex;
-    gap: 0.75rem;
-    }
-
-    /* Responsive adjustments for filter form */
-    @media (max-width: 768px) {
-    .filter-form {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .filter-group {
-      min-width: 100%;
-    }
-
-    .filter-buttons {
-      flex-direction: column;
-    }
-    }
-  </style>
-
-  <div class="content-area">
-    @if (session('success'))
-    <div class="alert-success">
-    <i class="fas fa-check-circle"></i>
-    {{ session('success') }}
-    </div>
-    @endif
-
-    {{-- Filter Form --}}
-    <form action="{{ route('admin.mataKuliahs.index') }}" method="GET" class="filter-form">
-    <div class="filter-group">
-      <label for="kode_mk">Kode Mata Kuliah</label>
-      <input type="text" id="kode_mk" name="kode_mk" value="{{ request('kode_mk') }}"
-      placeholder="Cari kode mata kuliah...">
-    </div>
-    <div class="filter-group">
-      <label for="nama_mk">Nama Mata Kuliah</label>
-      <input type="text" id="nama_mk" name="nama_mk" value="{{ request('nama_mk') }}"
-      placeholder="Cari nama mata kuliah...">
-    </div>
-    <div class="filter-group">
-      <label for="sks">SKS</label>
-      <input type="text" id="sks" name="sks" value="{{ request('sks') }}" placeholder="Contoh: 3">
-    </div>
-    <div class="filter-buttons">
-      <button type="submit" class="btn btn-primary">
-      <i class="fas fa-filter"></i> <span class="btn-text">Filter</span>
-      </button>
-      <a href="{{ route('admin.mataKuliahs.index') }}" class="btn btn-secondary">
-      <i class="fas fa-sync-alt"></i> <span class="btn-text">Reset</span>
-      </a>
-    </div>
-    </form>
-
-    <div class="page-header">
-    <h3 class="page-title">Daftar Mata Kuliah</h3>
-    <a href="{{ route('admin.mataKuliahs.create') }}" class="btn btn-primary">
-      <i class="fas fa-plus"></i>
-      <span class="btn-text">Tambah Mata Kuliah</span>
-    </a>
-    </div>
-
-    <div class="data-table-container">
-    <table class="data-table">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Kode MK</th>
-        <th>Nama Mata Kuliah</th>
-        <th>SKS</th>
-        <th>Kelas</th>
-        {{-- <th>Deskripsi</th> --}}
-        <th>Aksi</th>
-      </tr>
-      </thead>
-      <tbody>
-      @forelse ($mataKuliahs as $mk)
-      <tr>
-      <td>{{ $loop->iteration }}</td>
-      <td>{{ $mk->kode_mk }}</td>
-      <td>{{ $mk->nama_mk }}</td>
-      <td>{{ $mk->sks }}</td>
-      <td>{{ $mk->kelas }}</td> {{-- DATA BERUBAH --}}
-      {{-- <td>{{ Str::limit($mk->deskripsi ?? '-', 30) }}</td> --}}
-      <td>
-      <div class="action-buttons">
-        <a href="{{ route('admin.mataKuliahs.edit', $mk->id) }}" class="btn btn-warning">
-        <i class="fas fa-edit"></i>
-        <span class="btn-text">Edit</span>
-        </a>
-        <form action="{{ route('admin.mataKuliahs.destroy', $mk->id) }}" method="POST"
-        style="display:inline-block;">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-danger"
-        onclick="return confirm('Apakah Anda yakin ingin menghapus mata kuliah ini?')">
-        <i class="fas fa-trash-alt"></i>
-        <span class="btn-text">Hapus</span>
-        </button>
-        </form>
+  <div class="container-fluid">
+    <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3">
+      <h4 class="mb-3 fw-bold text-gradient">
+      <i class="fas fa-book me-2"></i>Data Mata Kuliah
+      </h4>
+      <hr>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="input-group input-group-sm" style="max-width: 350px;">
+        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" id="custom-search-input" class="form-control border-start-0"
+        placeholder="Cari kode atau nama mata kuliah...">
       </div>
-      </td>
-      </tr>
-    @empty
+      <a href="{{ route('admin.mataKuliahs.create') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus-circle me-1"></i> Tambah Mata Kuliah
+      </a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 @if($mataKuliahs->isEmpty()) is-empty @endif"
+        id="matakuliah-table" style="width:100%">
+        <thead class="table-light">
+        <tr>
+          <th class="text-center" width="5%">No.</th>
+          <th>Kode MK</th>
+          <th>Nama Mata Kuliah</th>
+          <th class="text-center">SKS</th>
+          <th>Kelas</th>
+          <th class="text-center" width="15%">Aksi</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse ($mataKuliahs as $mk)
       <tr>
-      <td colspan="7" class="empty-state">
-      <i class="fas fa-book"></i>
-      <p>Tidak ada data mata kuliah.</p>
-      </td>
+        <td class="text-center">{{ $loop->iteration }}</td>
+        <td data-label="Kode MK" class="fw-semibold">{{ $mk->kode_mk }}</td>
+        <td data-label="Nama MK">{{ $mk->nama_mk }}</td>
+        <td data-label="SKS" class="text-center">{{ $mk->sks }}</td>
+        <td data-label="Kelas">{{ $mk->kelas }}</td>
+        <td data-label="Aksi" class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+        <a href="{{ route('admin.mataKuliahs.edit', $mk->id) }}" class="btn btn-sm btn-outline-warning"
+        data-bs-toggle="tooltip" title="Edit"><i class="fas fa-edit"></i></a>
+        <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+        data-url="{{ route('admin.mataKuliahs.destroy', $mk->id) }}" data-name="{{ $mk->nama_mk }}"
+        data-bs-toggle="tooltip" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        </td>
       </tr>
-    @endforelse
-      </tbody>
-    </table>
+      @empty
+      <tr>
+        <td colspan="6" class="text-center py-5 text-muted">
+        <i class="fas fa-folder-open fa-3x mb-3"></i>
+        <p class="mb-0">Belum ada data mata kuliah.</p>
+        </td>
+      </tr>
+      @endforelse
+        </tbody>
+      </table>
+      </div>
+    </div>
     </div>
   </div>
 @endsection
+
+@push('styles')
+  <style>
+    .text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    }
+
+    .table th {
+    font-weight: 600;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    }
+
+    .table td {
+    vertical-align: middle;
+    font-size: .875rem;
+    }
+
+    @media (max-width: 768px) {
+    .table thead {
+      display: none;
+    }
+
+    .table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid #dee2e6;
+      border-radius: .5rem;
+    }
+
+    .table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+      padding: .75rem 1rem;
+    }
+
+    .table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #6c757d;
+      margin-right: 1rem;
+    }
+
+    .table td:last-child {
+      border-bottom: 0;
+    }
+    }
+  </style>
+@endpush
+
+@push('scripts')
+  <script>
+    $(document).ready(function () {
+    var table = $('#matakuliah-table:not(.is-empty)').DataTable({
+      dom: 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+      paging: false,
+      lengthChange: false,
+      searching: true,
+      ordering: true,
+      info: false,
+      order: [[2, 'asc']],
+      language: { search: "", zeroRecords: "Data tidak ditemukan.", info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", infoEmpty: "Menampilkan 0 data", paginate: { next: "›", previous: "‹" } },
+      columnDefs: [
+      { searchable: false, orderable: false, targets: 0, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
+      { orderable: false, searchable: false, targets: 5 }
+      ],
+      drawCallback: () => $('[data-bs-toggle="tooltip"]').each(function () { new bootstrap.Tooltip(this) })
+    });
+    $('#custom-search-input').on('keyup', function () { table.search(this.value).draw(); });
+
+    $(document).on('click', '.delete-btn', function (e) {
+      e.preventDefault();
+      const button = $(this);
+      const url = button.data('url');
+      const name = button.data('name');
+
+      Swal.fire({
+      title: 'Anda Yakin?', html: `Data mata kuliah <b>${name}</b> akan dihapus.`, icon: 'warning',
+      showCancelButton: true, confirmButtonColor: '#d33', cancelButtonText: 'Batal', confirmButtonText: 'Ya, Hapus!'
+      }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+        url: url, type: 'POST', data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+        success: function (response) {
+          table.row(button.closest('tr')).remove().draw(false);
+          Swal.fire('Berhasil!', response.success, 'success');
+        },
+        error: (xhr) => Swal.fire('Gagal!', (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Terjadi kesalahan.', 'error')
+        });
+      }
+      });
+    });
+    });
+  </script>
+@endpush

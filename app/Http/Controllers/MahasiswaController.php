@@ -5,20 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\NilaiMahasiswa;
 use App\Models\PengampuMataKuliah;
 use App\Models\PresensiMahasiswa;
-use App\Models\Mahasiswa; // Make sure Mahasiswa model is imported
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash; // Keep for changePassword
 use Carbon\Carbon;
-use App\Models\MataKuliah; 
-use App\Models\Dosen;       
+use Illuminate\Support\Facades\DB; 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule; // Required for unique email validation
 
 class MahasiswaController extends Controller
 {
-    public function dashboard()
+      public function dashboard()
     {
         $mahasiswa = Auth::user()->mahasiswa;
 
@@ -26,27 +25,33 @@ class MahasiswaController extends Controller
             return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan untuk akun ini.');
         }
 
-        // Ensure $mahasiswa->kelas is not null before using it in a query
-        $kelasMahasiswa = $mahasiswa->kelas;
-        $upcomingClasses = collect(); // Default to empty collection
+        // 1. Ambil Data KRS & Hitung Total SKS Semester Ini
+        $totalSksKrs = 0;
+        if ($mahasiswa->kelas) {
+            $krsDetails = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
+                ->with('mataKuliah')
+                ->get();
+            $totalSksKrs = $krsDetails->sum(fn($item) => optional($item->mataKuliah)->sks ?? 0);
+        }
 
-        if ($kelasMahasiswa) {
-            $upcomingClasses = PengampuMataKuliah::where('kelas', $kelasMahasiswa)
-                ->orderBy('hari')
+        // 2. Ambil Jadwal Kuliah Hari Ini
+        $upcomingClasses = collect();
+        if ($mahasiswa->kelas) {
+            $upcomingClasses = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
+                ->where('hari', Carbon::now()->locale('id')->isoFormat('dddd'))
                 ->orderBy('jam_mulai')
                 ->with(['mataKuliah', 'dosen'])
                 ->get();
-        } else {
-            Log::warning('Mahasiswa ID ' . $mahasiswa->id . ' does not have a kelas assigned.');
         }
 
-
+        // 3. Ambil Nilai Terbaru untuk Ditampilkan
         $recentGrades = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->limit(5)
-            ->with(['mataKuliah', 'dosen'])
+            ->with(['mataKuliah'])
             ->get();
 
+        // 4. Ambil Semua Nilai untuk Kalkulasi Grafik IPS & IPK
         $nilaiMahasiswas = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
             ->with('mataKuliah')
             ->orderBy('kelas', 'asc') 
@@ -55,27 +60,18 @@ class MahasiswaController extends Controller
         $ipsData = [];
         $ipkData = [];
         $totalSKSKumulatif = 0;
-        $totalSKSxMutuKumulatif = 0;
-
+        $totalMutuKaliSKSKumulatif = 0;
         $nilaiPerKelas = $nilaiMahasiswas->groupBy('kelas');
-
+        
         foreach ($nilaiPerKelas as $kelas => $nilaiList) {
-            $totalSKSPerKelas = 0;
-            $totalSKSxMutuPerKelas = 0;
-
-            foreach ($nilaiList as $nilai) {
-                if ($nilai->mutu !== null && $nilai->mataKuliah && $nilai->mataKuliah->sks !== null) {
-                    $totalSKSPerKelas += $nilai->mataKuliah->sks;
-                    $totalSKSxMutuPerKelas += ($nilai->mataKuliah->sks * $nilai->mutu);
-                }
-            }
-
-            $ips = ($totalSKSPerKelas > 0) ? round($totalSKSxMutuPerKelas / $totalSKSPerKelas, 2) : 0.00;
+            $totalSKSPerKelas = $nilaiList->sum(fn($n) => optional($n->mataKuliah)->sks ?? 0);
+            $totalMutuKaliSKS = $nilaiList->sum(fn($n) => (optional($n->mataKuliah)->sks ?? 0) * ($n->mutu ?? 0));
+            $ips = ($totalSKSPerKelas > 0) ? round($totalMutuKaliSKS / $totalSKSPerKelas, 2) : 0.00;
             $ipsData[$kelas] = $ips;
-
+            
             $totalSKSKumulatif += $totalSKSPerKelas;
-            $totalSKSxMutuKumulatif += $totalSKSxMutuPerKelas;
-            $ipk = ($totalSKSKumulatif > 0) ? round($totalSKSxMutuKumulatif / $totalSKSKumulatif, 2) : 0.00;
+            $totalMutuKaliSKSKumulatif += $totalMutuKaliSKS;
+            $ipk = ($totalSKSKumulatif > 0) ? round($totalMutuKaliSKSKumulatif / $totalSKSKumulatif, 2) : 0.00;
             $ipkData[$kelas] = $ipk;
         }
 
@@ -83,15 +79,28 @@ class MahasiswaController extends Controller
         $chartIPSValues = array_values($ipsData);
         $chartIPKValues = array_values($ipkData);
 
+        // 5. Ambil Data Pengumuman
+        $announcements = Announcement::where(function ($query) {
+            $query->where('target_role', 'Mahasiswa')
+                  ->orWhere('target_role', 'Semua');
+        })
+        ->latest()
+        ->limit(5)
+        ->get();
+        
+        // 6. Kirim SEMUA data ke view dalam SATU kali return
         return view('mahasiswa.dashboard', compact(
             'mahasiswa',
+            'totalSksKrs',
             'upcomingClasses',
             'recentGrades',
             'chartLabels',
             'chartIPSValues',
-            'chartIPKValues'
+            'chartIPKValues',
+            'announcements' // Variabel pengumuman sekarang sudah ada
         ));
     }
+
 
     public function lihatJadwalKuliah()
     {
@@ -101,30 +110,19 @@ class MahasiswaController extends Controller
             return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan.');
         }
         
-        $jadwalKuliahs = collect();
+        $jadwalKuliahs = collect(); // Default ke koleksi kosong
         if ($mahasiswa->kelas) {
+            // --- INI BAGIAN YANG DIUBAH ---
+            // Mengambil data dan langsung mengurutkannya di database
             $jadwalKuliahs = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
                 ->with(['mataKuliah', 'dosen'])
-                ->orderBy('jam_mulai')
+                ->orderBy(DB::raw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')"))
+                ->orderBy('jam_mulai', 'asc')
                 ->get();
         }
 
-
-        $dayOrder = [
-            'Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4,
-            'Jumat' => 5, 'Sabtu' => 6, 'Minggu' => 7,
-        ];
-
-        $sortedJadwalKuliahs = $jadwalKuliahs->sort(function ($a, $b) use ($dayOrder) {
-            $orderA = $dayOrder[$a->hari] ?? 99;
-            $orderB = $dayOrder[$b->hari] ?? 99;
-            if ($orderA === $orderB) {
-                return strtotime($a->jam_mulai) <=> strtotime($b->jam_mulai);
-            }
-            return $orderA <=> $orderB;
-        });
-
-        return view('mahasiswa.jadwal_kuliah', compact('sortedJadwalKuliahs', 'mahasiswa'));
+        // Variabel yang dikirim ke view sekarang kita namakan $jadwalKuliahs agar konsisten
+        return view('mahasiswa.jadwal_kuliah', compact('jadwalKuliahs', 'mahasiswa'));
     }
     public function lihatKHS()
     {
@@ -134,23 +132,21 @@ class MahasiswaController extends Controller
             return redirect('/')->with('error', 'Data mahasiswa tidak ditemukan.');
         }
 
-        $nilaiMahasiswas = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-            ->with(['mataKuliah', 'dosen'])
-            ->orderBy('kelas', 'asc')
+        // Ambil semua data nilai sebagai satu daftar (flat list)
+        // dan urutkan langsung dari database agar efisien.
+        $nilaiMahasiswas = NilaiMahasiswa::where('nilai_mahasiswas.mahasiswa_id', $mahasiswa->id)
+            ->with('mataKuliah')
+            ->leftJoin('mata_kuliahs', 'nilai_mahasiswas.mata_kuliah_id', '=', 'mata_kuliahs.id')
+            ->orderBy('nilai_mahasiswas.kelas', 'asc') // Urutkan berdasarkan kelas/semester
+            ->orderBy('mata_kuliahs.nama_mk', 'asc')   // Lalu urutkan berdasarkan nama MK
+            ->select('nilai_mahasiswas.*')
             ->get();
-
-        // Sort by mata kuliah name within each group later if needed, or ensure mataKuliah relation is loaded
-        $nilaiMahasiswas = $nilaiMahasiswas->sortBy(function($nilai) {
-            return $nilai->mataKuliah->nama_mk ?? ''; // Handle if mataKuliah is null
-        });
-
-
-        $nilaiPerKelas = $nilaiMahasiswas->groupBy('kelas'); 
-
-        return view('mahasiswa.khs', compact('mahasiswa', 'nilaiPerKelas'));
+        
+        // Kirim data mahasiswa dan daftar nilainya ke view
+        return view('mahasiswa.khs', compact('mahasiswa', 'nilaiMahasiswas'));
     }
 
-      public function lihatKRS()
+     public function lihatKRS()
     {
         $mahasiswa = Auth::user()->mahasiswa;
 
@@ -160,22 +156,23 @@ class MahasiswaController extends Controller
         
         $krsDetails = collect();
         if ($mahasiswa->kelas) {
-            $krsDetails = PengampuMataKuliah::where('kelas', $mahasiswa->kelas)
+            // === PERBAIKAN QUERY DI SINI ===
+            // Ganti semua 'pengampu_mata_kuliahs' menjadi 'pengampu_mata_kuliah'
+            $krsDetails = PengampuMataKuliah::where('pengampu_mata_kuliah.kelas', $mahasiswa->kelas)
                 ->with(['mataKuliah', 'dosen'])
+                ->join('mata_kuliahs', 'pengampu_mata_kuliah.mata_kuliah_id', '=', 'mata_kuliahs.id')
+                ->orderBy('mata_kuliahs.nama_mk', 'asc')
+                ->select('pengampu_mata_kuliah.*')
                 ->get();
         }
 
         $totalSKS = $krsDetails->sum(function($item) {
-            return $item->mataKuliah->sks ?? 0;
+            return optional($item->mataKuliah)->sks ?? 0;
         });
 
-        $krsDetails = $krsDetails->sortBy(function($item) {
-            return $item->mataKuliah->nama_mk ?? '';
-        });
-
-        $displaySemesterTitle = 'Kelas ' . ($mahasiswa->kelas ?? 'Belum Ada Kelas');
-        return view('mahasiswa.krs', compact('mahasiswa', 'displaySemesterTitle', 'krsDetails', 'totalSKS'));
+        return view('mahasiswa.krs', compact('mahasiswa', 'krsDetails', 'totalSKS'));
     }
+
 
     public function lihatDetailPribadi()
     {
@@ -189,7 +186,7 @@ class MahasiswaController extends Controller
 
         return view('mahasiswa.detail_pribadi', compact('mahasiswa'));
     }
-    public function lihatRangkumanNilai()
+   public function lihatRangkumanNilai()
     {
         $mahasiswa = Auth::user()->mahasiswa;
 
@@ -199,53 +196,23 @@ class MahasiswaController extends Controller
 
         $nilaiMahasiswas = NilaiMahasiswa::where('mahasiswa_id', $mahasiswa->id)
             ->with('mataKuliah')
-            ->orderBy('kelas', 'asc')
-            ->get();
-
-        $nilaiPerKelas = $nilaiMahasiswas->groupBy('kelas');
-
-        $compiledGrades = collect();
+            ->get()->sortBy(function($nilai) {
+                return $nilai->kelas . optional($nilai->mataKuliah)->nama_mk;
+            });
+            
+        // Lakukan kalkulasi total SKS dan total Mutu di sini
         $totalSKSKumulatif = 0;
-        $totalSKSxMutuKumulatif = 0;
+        $totalMutuKumulatif = 0; // Variabel baru untuk Total Mutu
 
-        foreach ($nilaiPerKelas as $kelas => $nilaiList) {
-            $semesterData = [
-                'kelas' => $kelas,
-                'grades' => collect(),
-                'total_sks_kelas' => 0,
-                'total_sks_x_mutu_kelas' => 0,
-                'ipk_kelas' => 0.00,
-            ];
-
-            foreach ($nilaiList as $nilai) {
-                if ($nilai->mataKuliah) {
-                    $semesterData['grades']->push([
-                        'kode_mk' => $nilai->mataKuliah->kode_mk,
-                        'nama_mk' => $nilai->mataKuliah->nama_mk,
-                        'sks' => $nilai->mataKuliah->sks,
-                        'nilai_angka' => $nilai->nilai_angka ?? '-',
-                        'nilai_huruf' => $nilai->nilai_huruf ?? '-',
-                        'mutu' => $nilai->mutu ?? '-',
-                    ]);
-
-                    if ($nilai->mutu !== null && $nilai->mataKuliah->sks !== null) {
-                        $semesterData['total_sks_kelas'] += $nilai->mataKuliah->sks;
-                        $semesterData['total_sks_x_mutu_kelas'] += ($nilai->mataKuliah->sks * $nilai->mutu);
-                    }
-                }
-            }
-
-            $semesterData['ipk_kelas'] = ($semesterData['total_sks_kelas'] > 0) ?
-                round($semesterData['total_sks_x_mutu_kelas'] / $semesterData['total_sks_kelas'], 2) : 0.00;
-
-            $compiledGrades->push($semesterData);
-
-            $totalSKSKumulatif += $semesterData['total_sks_kelas'];
-            $totalSKSxMutuKumulatif += $semesterData['total_sks_x_mutu_kelas'];
+        foreach ($nilaiMahasiswas as $nilai) {
+            $totalSKSKumulatif += optional($nilai->mataKuliah)->sks ?? 0;
+            // Panggil accessor baru sks_x_mutu yang sudah kita buat
+            $totalMutuKumulatif += $nilai->sks_x_mutu; 
         }
-
-        $ipkKumulatif = ($totalSKSKumulatif > 0) ? round($totalSKSxMutuKumulatif / $totalSKSKumulatif, 2) : 0.00;
-        return view('mahasiswa.rangkuman_nilai', compact('mahasiswa', 'compiledGrades', 'ipkKumulatif', 'totalSKSKumulatif'));
+        
+        $ipkKumulatif = ($totalSKSKumulatif > 0) ? round($totalMutuKumulatif / $totalSKSKumulatif, 2) : 0.00;
+        
+        return view('mahasiswa.rangkuman_nilai', compact('mahasiswa', 'nilaiMahasiswas', 'ipkKumulatif', 'totalSKSKumulatif', 'totalMutuKumulatif'));
     }
 
      public function showPresensiForm()
@@ -340,10 +307,6 @@ class MahasiswaController extends Controller
         }
     }
 
-    // --- Metode Baru untuk Edit Detail Pribadi ---
-    /**
-     * Show the form for editing the student's personal details.
-     */
     public function editDetailPribadi()
     {
         $mahasiswa = Auth::user()->mahasiswa;
@@ -354,9 +317,7 @@ class MahasiswaController extends Controller
         return view('mahasiswa.edit_detail_pribadi', compact('mahasiswa'));
     }
 
-    /**
-     * Update the student's personal details in storage.
-     */
+
     public function updateDetailPribadi(Request $request)
     {
         $user = Auth::user();

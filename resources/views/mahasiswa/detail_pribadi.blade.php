@@ -105,7 +105,7 @@
     flex: 1;
     font-weight: 400;
     color: #333;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     }
 
     .status-badge {

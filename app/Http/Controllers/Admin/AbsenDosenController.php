@@ -10,29 +10,27 @@ use Illuminate\Validation\Rule;
 
 class AbsenDosenController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Menampilkan daftar absen dosen menggunakan DataTables.
+     */
+    public function index()
     {
-        $filterDosenNama = $request->input('dosen_nama');
-        $query = AbsenDosen::query();
-        $query->with('dosen');
-
-        if (!empty($filterDosenNama)) {
-            $query->whereHas('dosen', function ($q) use ($filterDosenNama) {
-                $q->where('nama', 'like', '%' . $filterDosenNama . '%');
-            });
-        }
-    $absenDosens = $query->orderBy('tanggal', 'desc')
-                             ->orderBy('dosen_id')
-                             ->paginate(10); 
-        return view('admin.absen_dosen.index', compact('absenDosens'));        
+        $absenDosens = AbsenDosen::with('dosen')->latest('tanggal')->get();
+        return view('admin.absen_dosen.index', compact('absenDosens'));
     }
 
+    /**
+     * Menampilkan form untuk membuat data absen baru.
+     */
     public function create()
     {
         $dosens = Dosen::orderBy('nama')->get();
         return view('admin.absen_dosen.create', compact('dosens'));
     }
 
+    /**
+     * Menyimpan data absen baru via AJAX.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -40,27 +38,28 @@ class AbsenDosenController extends Controller
             'tanggal' => 'required|date',
             'waktu_masuk' => 'nullable|date_format:H:i',
             'waktu_keluar' => 'nullable|date_format:H:i|after_or_equal:waktu_masuk',
-            'status' => ['required', Rule::in(['Hadir', 'Izin', 'Sakit', 'Alpha'])],
+            // PERUBAHAN: Validasi hanya untuk Hadir dan Tidak Hadir
+            'status' => ['required', Rule::in(['Hadir', 'Tidak Hadir'])],
             'keterangan' => 'nullable|string|max:255',
         ]);
 
         AbsenDosen::create($validated);
 
-        return redirect()->route('admin.absen_dosen.index')
-                         ->with('success', 'Absen dosen berhasil ditambahkan.');
+        return response()->json(['success' => 'Absen dosen berhasil ditambahkan.']);
     }
 
-    public function show(AbsenDosen $absenDosen)
-    {
-        abort(404); 
-    }
-
+    /**
+     * Menampilkan form untuk mengedit data absen.
+     */
     public function edit(AbsenDosen $absenDosen)
     {
         $dosens = Dosen::orderBy('nama')->get();
         return view('admin.absen_dosen.edit', compact('absenDosen', 'dosens'));
     }
 
+    /**
+     * Memperbarui data absen via AJAX.
+     */
     public function update(Request $request, AbsenDosen $absenDosen)
     {
         $validated = $request->validate([
@@ -68,20 +67,24 @@ class AbsenDosenController extends Controller
             'tanggal' => 'required|date',
             'waktu_masuk' => 'nullable|date_format:H:i',
             'waktu_keluar' => 'nullable|date_format:H:i|after_or_equal:waktu_masuk',
-            'status' => ['required', Rule::in(['Hadir', 'Izin', 'Sakit', 'Alpha'])],
+            // PERUBAHAN: Validasi hanya untuk Hadir dan Tidak Hadir
+            'status' => ['required', Rule::in(['Hadir', 'Tidak Hadir'])],
             'keterangan' => 'nullable|string|max:255',
         ]);
 
         $absenDosen->update($validated);
 
-        return redirect()->route('admin.absen_dosen.index')
-                         ->with('success', 'Absen dosen berhasil diperbarui.');
+        return response()->json(['success' => 'Absen dosen berhasil diperbarui.']);
     }
 
+    /**
+     * Menghapus data absen via AJAX.
+     */
     public function destroy(AbsenDosen $absenDosen)
     {
+        $dosenName = $absenDosen->dosen->nama;
         $absenDosen->delete();
-        return redirect()->route('admin.absen_dosen.index')
-                         ->with('success', 'Absen dosen berhasil dihapus.');
+
+        return response()->json(['success' => "Data absen untuk $dosenName berhasil dihapus."]);
     }
 }

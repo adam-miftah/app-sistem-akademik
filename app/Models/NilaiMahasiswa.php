@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Log;
 
 class NilaiMahasiswa extends Model
 {
@@ -154,4 +156,22 @@ class NilaiMahasiswa extends Model
         if ($nilaiAngka >= 40) return 1.00; // D
         return 0.00; // E
     }
+    protected function sksXMutu(): Attribute
+    {
+        return Attribute::make(get: function () {
+            // Pastikan relasi mataKuliah sudah dimuat untuk mengakses SKS
+            if (!$this->relationLoaded('mataKuliah')) {
+                $this->load('mataKuliah');
+            }
+    
+            // Jika salah satu dari sks atau mutu tidak ada, kembalikan 0
+            if (optional($this->mataKuliah)->sks === null || $this->mutu === null) {
+                return 0;
+            }
+    
+            // Lakukan perkalian
+            return (float)$this->mataKuliah->sks * (float)$this->mutu;
+        });
+    }
+
 }

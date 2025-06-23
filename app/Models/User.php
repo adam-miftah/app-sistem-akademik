@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Announcement;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,6 +12,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
+        'user_id',
+        'nim', 
         'name',
         'email',
         'password',
@@ -56,5 +58,9 @@ class User extends Authenticatable
         }
         // Jika peran lain atau profil tidak ditemukan, kembali ke nama default dari tabel users
         return $this->name;
+    }
+    public function announcements()
+    {
+        return $this->hasMany(Announcement::class);
     }
 }
