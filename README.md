@@ -109,12 +109,6 @@ Kontribusi Anda sangat kami harapkan! Baik itu berupa ide, laporan bug, atau pul
 
 ---
 
-## 📜 Lisensi
-
-Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat file LICENSE untuk detail lengkap.
-
----
-
 ## 💌 Kontak & Dukungan
 
 Punya pertanyaan, saran, atau ingin berdiskusi?
