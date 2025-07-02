@@ -185,14 +185,12 @@
 @section('content')
   <div class="container-fluid px-0 px-md-3">
     <div class="card shadow-sm border-0">
-    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
-      <h6 class="m-0 font-weight-bold">
+    <div class="card-header bg-light text-primarypy-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 fw-bold text-primary">
       <i class="fas fa-user-graduate me-2"></i>Informasi Pribadi dan Akademik
       </h6>
-      {{-- Tombol Edit Diubah di Sini --}}
-      <a href="{{ route('mahasiswa.profil.edit') }}" class="btn btn-light"> {{-- Classes changed --}}
-      <i class="fas fa-edit"></i> <span class="btn-text">Edit Detail Pribadi</span> {{-- Icon no longer has me-1, text
-      wrapped in span --}}
+      <a href="{{ route('mahasiswa.profil.edit') }}" class="btn btn-primary">
+      <i class="fas fa-edit"></i> <span class="btn-text">Edit Detail Pribadi</span>
       </a>
     </div>
 

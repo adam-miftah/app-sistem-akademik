@@ -17,7 +17,7 @@
         <input type="text" id="custom-search-input" class="form-control border-start-0"
         placeholder="Cari mata kuliah, hari, kelas...">
       </div>
-      <button onclick="window.print()" class="btn btn-secondary btn-sm">
+      <button onclick="window.print()" class="btn btn-success btn-sm">
         <i class="fas fa-print me-1"></i> Cetak Jadwal
       </button>
       </div>

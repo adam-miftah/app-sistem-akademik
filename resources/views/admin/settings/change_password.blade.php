@@ -47,7 +47,7 @@
         <div class="mb-3">
           <label for="new_password" class="form-label">Password Baru</label>
           <input type="password" class="form-control" id="new_password" name="new_password" required
-          placeholder="Masukkan minimal 8 karakter...">
+          placeholder="Masukkan password baru...">
         </div>
         <div class="mb-3">
           <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru</label>
