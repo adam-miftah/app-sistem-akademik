@@ -3,7 +3,6 @@
 Selamat datang di **App Sistem Akademik**! Solusi modern untuk digitalisasi dan optimalisasi manajemen akademik di institusi pendidikan Anda. Proyek ini bertujuan untuk menyederhanakan proses, meningkatkan kolaborasi, dan menyediakan informasi secara _real-time_ bagi semua _stakeholder_.
 
 [![Versi Proyek](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](URL_MENUJU_RELEASE_NOTES_JIKA_ADA)
-[![Lisensi](https://img.shields.io/github/license/adam-miftah/app-sistem-akademik?style=for-the-badge&color=brightgreen)](LICENSE_FILE_ANDA)
 [![Framework Digunakan](https://img.shields.io/badge/Framework-Laravel_vX.Y-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.1-777BB4?style=for-the-badge&logo=php)](https://www.php.net/)
 
@@ -109,30 +108,9 @@ Kontribusi Anda sangat kami harapkan! Baik itu berupa ide, laporan bug, atau pul
 
 ---
 
-## 📜 Lisensi
-
-Proyek ini dilisensikan di bawah [NAMA_LISENSI_ANDA, misal: MIT License]. Lihat file LICENSE untuk detail lengkap.
-
----
-
 ## 💌 Kontak & Dukungan
 
 Punya pertanyaan, saran, atau ingin berdiskusi?
 
-Issues: Buka Isu Baru
-
 Email: [adammiftah196@gmail.com] 
 
-&lt;p align="center">Dibuat dengan ❤️ oleh &lt;a href="https://github.com/adam-miftah">Adam Miftah&lt;/a> dan para kontributor.
-&lt;/p>
-
-
-**Beberapa hal yang bisa Anda sesuaikan:**
-
-  * **URL Logo/Banner:** Ganti `URL_LOGO_PROYEK_ANDA_JIKA_ADA_ATAU_BANNER_KEREN` dengan link gambar yang relevan. Anda bisa buat banner menggunakan Canva atau tools sejenis.
-  * **Badge/Shields:** Sesuaikan versi, nama framework, versi PHP, dll. Anda bisa mencari lebih banyak badge keren di [shields.io](https://shields.io/).
-  * **Fitur Unggulan & Stack Teknologi:** Pastikan ini mencerminkan proyek Anda secara akurat.
-  * **Prasyarat & Langkah Instalasi:** Sesuaikan dengan kebutuhan spesifik proyek Anda (misalnya, jika ada langkah build frontend yang berbeda).
-  * **Roadmap:** Jika Anda punya rencana pengembangan ke depan, ini bisa jadi bagian yang menarik.
-  * **Lisensi:** Pastikan nama lisensi dan link ke file `LICENSE` (jika ada) sudah benar.
-  * **Kontak:** Tambahkan informasi kontak jika Anda bersedia.
