@@ -66,7 +66,7 @@ cd app-sistem-akademik
 # 2. Install dependensi PHP
 composer install
 
-# 3. Install dependensi Node.js (jika ada)
+# 3. Install dependensi Node.js 
 npm install
 # atau
 yarn install
@@ -74,22 +74,23 @@ yarn install
 # 4. Salin file environment
 cp .env.example .env
 
-# 5. Generate application key (khusus Laravel)
+# 5. Generate application key 
 php artisan key:generate
 
 # 6. Konfigurasi file .env Anda
 #    Sesuaikan DB_DATABASE, DB_USERNAME, DB_PASSWORD, dll.
 
-# 7. Jalankan migrasi database (dan seeder jika ada)
-php artisan migrate --seed
+# 7. Jalankan migrasi database 
+php artisan migrate 
 
-# 8. (Opsional) Compile aset frontend (jika ada)
-npm run dev # atau build
-
-# 9. Jalankan server pengembangan (khusus Laravel)
+# 9. Jalankan server pengembangan 
 php artisan serve
+
+# 10. Login
+username : admin@gmail.com
+password : password123
 ```
-## 🗺️ Roadmap Proyek (Opsional)
+## 🗺️ Roadmap Proyek 
 - **Implementasi Modul Keuangan Mahasiswa**
 - **Integrasi Notifikasi Email & WhatsApp**
 - **Fitur Diskusi Online per Mata Kuliah**
